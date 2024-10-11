@@ -20,3 +20,11 @@ func Roll(n int) int {
 	}
 	return rand.Intn(n)
 }
+
+func Nan32() float32 {
+	return float32(math.NaN())
+}
+
+func IsNaN[F float](f F) bool {
+	return f != f
+}

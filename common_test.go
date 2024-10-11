@@ -20,3 +20,10 @@ func TestCutSlice(t *testing.T) {
 		last = subslice[len(subslice)-1]
 	}
 }
+
+func TestNaN32(t *testing.T) {
+	f := Nan32()
+	if !IsNaN(f) {
+		t.Error("no!")
+	}
+}
