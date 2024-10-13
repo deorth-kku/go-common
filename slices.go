@@ -12,12 +12,24 @@ func AnySliceReplaceNil(in []string) (out []any) {
 	return
 }
 
-func AnySlice[t any](in []t) (out []any) {
-	out = make([]any, len(in))
-	for i, arg := range in {
-		out[i] = arg
+func SliceAssert[T any](input []any) (output []T) {
+	output = make([]T, len(input))
+	for i, v := range input {
+		output[i] = v.(T)
 	}
 	return
+}
+
+func SliceAny[T any](in []T) (out []any) {
+	out = make([]any, len(in))
+	for i, v := range in {
+		out[i] = v
+	}
+	return
+}
+
+func AnySlice[T any](in []T) []any {
+	return SliceAny(in)
 }
 
 func CutSlice[t any](in []t, l int) (out [][]t) {

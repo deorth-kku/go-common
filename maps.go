@@ -40,3 +40,19 @@ func MapMerge[K comparable, V any](in ...map[K]V) (out map[K]V) {
 		return
 	}
 }
+
+func MapAssert[T any](input map[string]any) (output map[string]T) {
+	output = make(map[string]T)
+	for k, v := range input {
+		output[k] = v.(T)
+	}
+	return
+}
+
+func MapAny[T any](input map[string]T) (output map[string]any) {
+	output = make(map[string]any)
+	for k, v := range input {
+		output[k] = v
+	}
+	return
+}

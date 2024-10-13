@@ -2,7 +2,7 @@ package common
 
 import (
 	"math"
-	"math/rand"
+	"math/rand/v2"
 )
 
 type AnyInt interface {
@@ -18,7 +18,7 @@ func Roll(n int) int {
 	if n < 1 {
 		return n
 	}
-	return rand.Intn(n)
+	return rand.IntN(n)
 }
 
 func Nan32() float32 {

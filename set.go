@@ -48,7 +48,7 @@ func (s Set[T]) Range(yield func(T) bool) {
 
 func (s Set[T]) Slice() (slice []T) {
 	slice = make([]T, 0, s.Len())
-	for elem := range s.Range {
+	for elem := range s.data {
 		slice = append(slice, elem)
 	}
 	return
