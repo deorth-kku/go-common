@@ -21,16 +21,19 @@ func (ps PairSlice[K, V]) Range(yield func(K, V) bool) {
 	}
 }
 
+func EmptyRange[T any](func(T) bool)            {}
+func EmptyRange2[K any, V any](func(K, V) bool) {}
+
 func SafeRange[T any](f iter.Seq[T]) iter.Seq[T] {
 	if f == nil {
-		return func(func(T) bool) {}
+		return EmptyRange
 	}
 	return f
 }
 
 func SafeRange2[K any, V any](f iter.Seq2[K, V]) iter.Seq2[K, V] {
 	if f == nil {
-		return func(func(K, V) bool) {}
+		return EmptyRange2
 	}
 	return f
 }
