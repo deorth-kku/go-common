@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"strings"
@@ -14,25 +15,92 @@ var logLevels = map[string]slog.Level{
 	"INFO":    slog.LevelInfo,
 }
 
-func SetLog(file string, level string) (err error) {
+type EmptyCloser struct{}
+
+func (EmptyCloser) Close() error {
+	return nil
+}
+
+func SetLog(file string, level string, opts ...SlogOption) (close io.Closer, err error) {
 	level = strings.ToUpper(level)
 	var f *os.File
 
 	if file == "" {
 		f = os.Stderr
+		close = EmptyCloser{}
 	} else {
 		f, err = os.OpenFile(file, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
 			return
 		}
+		close = f
 	}
-	slog.SetDefault(slog.New(slog.NewTextHandler(f, &slog.HandlerOptions{
+	options := &slog.HandlerOptions{
 		Level:       logLevels[level],
 		ReplaceAttr: nil,
 		AddSource:   level == "DEBUG",
-	})))
+	}
+	for _, opt := range opts {
+		opt.SetOption(options)
+
+	}
+
+	var handler slog.Handler = NewHandler(f, options)
+	for _, opt := range opts {
+		h0 := opt.SetHander(f, options)
+		if h0 != nil {
+			handler = h0
+		}
+	}
+	slog.SetDefault(slog.New(handler))
 	return
 }
+
+type SlogOption interface {
+	SetOption(opts *slog.HandlerOptions)
+	SetHander(w io.Writer, opts *slog.HandlerOptions) slog.Handler
+}
+
+type SlogHideTime struct{}
+
+func (SlogHideTime) SetOption(opts *slog.HandlerOptions) {
+	opts.ReplaceAttr = func(groups []string, attr slog.Attr) slog.Attr {
+		if attr.Key == slog.TimeKey {
+			return slog.Attr{}
+		}
+		return attr
+	}
+}
+
+func (SlogHideTime) SetHander(_ io.Writer, _ *slog.HandlerOptions) slog.Handler {
+	return nil
+}
+
+type SlogText struct{}
+
+func (SlogText) SetOption(opts *slog.HandlerOptions) {
+	return
+}
+
+func (SlogText) SetHander(w io.Writer, opts *slog.HandlerOptions) slog.Handler {
+	return slog.NewTextHandler(w, opts)
+}
+
+type SlogJson struct{}
+
+func (SlogJson) SetOption(opts *slog.HandlerOptions) {
+	return
+}
+
+func (SlogJson) SetHander(w io.Writer, opts *slog.HandlerOptions) slog.Handler {
+	return slog.NewJSONHandler(w, opts)
+}
+
+var (
+	_ SlogOption = SlogText{}
+	_ SlogOption = SlogJson{}
+	_ SlogOption = SlogHideTime{}
+)
 
 type antsSlogger struct{}
 

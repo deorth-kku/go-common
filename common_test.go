@@ -1,6 +1,9 @@
 package common
 
-import "testing"
+import (
+	"log/slog"
+	"testing"
+)
 
 func TestHttp(t *testing.T) {
 	server := NewHttpServer()
@@ -26,4 +29,13 @@ func TestNaN32(t *testing.T) {
 	if !IsNaN(f) {
 		t.Error("no!")
 	}
+}
+
+func TestSetLog(t *testing.T) {
+	closer, err := SetLog("", "DEBUG", SlogHideTime{})
+	if err != nil {
+		t.Error(err)
+	}
+	defer closer.Close()
+	slog.Debug("test")
 }
