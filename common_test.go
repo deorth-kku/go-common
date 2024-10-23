@@ -47,7 +47,7 @@ func TestSetGroup(t *testing.T) {
 		t.Error(err)
 	}
 	defer closer.Close()
-	slog.Debug("test", "test", Map2Group(map[string]any{
+	slog.Info("test", "test", Map2Group(map[string]any{
 		"a": 1,
 		"b": 2,
 		"g": map[string]any{

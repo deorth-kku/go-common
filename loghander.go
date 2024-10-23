@@ -79,7 +79,7 @@ func (h *MyHandler) Handle(ctx context.Context, r slog.Record) error {
 		buf = append(buf, ' ')
 	}
 
-	levText := (r.Level.String() + " ")[0:5]
+	levText := r.Level.String()
 
 	buf = append(buf, levText...)
 	buf = append(buf, ' ')
