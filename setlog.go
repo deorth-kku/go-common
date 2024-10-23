@@ -136,6 +136,24 @@ func (SlogIter) SetHander(_ io.Writer, _ *slog.HandlerOptions) slog.Handler {
 	return nil
 }
 
+type SlogStruct[T any] struct{}
+
+func (SlogStruct[T]) convert_struct(_ []string, attr slog.Attr) slog.Attr {
+	a := attr.Value.Any()
+	if _, ok := a.(T); ok {
+		attr.Value = Map2Group(MustStruct2Map(a))
+	}
+	return attr
+}
+
+func (s SlogStruct[T]) SetOption(opts *slog.HandlerOptions) {
+	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.convert_struct)
+}
+
+func (SlogStruct[T]) SetHander(_ io.Writer, _ *slog.HandlerOptions) slog.Handler {
+	return nil
+}
+
 type SlogText struct{}
 
 func (SlogText) SetOption(opts *slog.HandlerOptions) {
