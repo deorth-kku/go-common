@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"log/slog"
+	"maps"
 	"testing"
 )
 
@@ -75,4 +76,17 @@ func TestStruct(t *testing.T) {
 		t.Error(err)
 	}
 	fmt.Println(m)
+}
+
+func TestSlogIterMap(t *testing.T) {
+	m := map[string]any{
+		"a": 1,
+		"b": 2,
+	}
+	closer, err := SetLog("", "DEBUG", SlogHideTime{}, SlogIter{}, SlogMap{})
+	if err != nil {
+		t.Error(err)
+	}
+	defer closer.Close()
+	slog.Info("test log iter and map", "iter", maps.All(m), "map", m)
 }
