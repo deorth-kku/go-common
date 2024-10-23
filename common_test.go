@@ -32,10 +32,27 @@ func TestNaN32(t *testing.T) {
 }
 
 func TestSetLog(t *testing.T) {
-	closer, err := SetLog("", "DEBUG", SlogHideTime{})
+	closer, err := SetLog("", "DEBUG", SlogHideTime{}, SlogJson{})
 	if err != nil {
 		t.Error(err)
 	}
 	defer closer.Close()
 	slog.Debug("test")
+}
+
+func TestSetGroup(t *testing.T) {
+	closer, err := SetLog("", "DEBUG", SlogHideTime{})
+	if err != nil {
+		t.Error(err)
+	}
+	defer closer.Close()
+	slog.Debug("test", "test", Map2Group(map[string]any{
+		"a": 1,
+		"b": 2,
+		"g": map[string]any{
+			"a": 1,
+			"b": 2,
+		},
+	}))
+
 }

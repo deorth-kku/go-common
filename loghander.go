@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -62,7 +63,17 @@ func (h *MyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 
 func (h *MyHandler) Handle(ctx context.Context, r slog.Record) error {
 	var buf []byte
-	if !r.Time.IsZero() && h.opts.ReplaceAttr == nil {
+
+	if h.opts.ReplaceAttr != nil {
+		key := slog.TimeKey
+		val := r.Time.Round(0)
+		timeattr := h.opts.ReplaceAttr(nil, slog.Time(key, val))
+		var ok bool
+		if r.Time, ok = timeattr.Value.Any().(time.Time); !ok {
+			h.appendAttr(buf, h.prefix, timeattr)
+		}
+	}
+	if !r.Time.IsZero() {
 		buf = r.Time.AppendFormat(buf, time.DateTime)
 		buf = append(buf, ' ')
 	}
@@ -93,6 +104,13 @@ func (h *MyHandler) Handle(ctx context.Context, r slog.Record) error {
 }
 
 func (h *MyHandler) appendAttr(buf []byte, prefix string, a slog.Attr) []byte {
+	if h.opts.ReplaceAttr != nil {
+		var groups []string
+		if prefix != h.prefix {
+			groups = strings.Split(prefix[len(h.prefix)+1:], ".")
+		}
+		a = h.opts.ReplaceAttr(groups, a)
+	}
 	if a.Equal(slog.Attr{}) {
 		return buf
 	}

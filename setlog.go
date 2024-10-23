@@ -3,7 +3,9 @@ package common
 import (
 	"fmt"
 	"io"
+	"iter"
 	"log/slog"
+	"maps"
 	"os"
 	"strings"
 )
@@ -42,7 +44,6 @@ func SetLog(file string, level string, opts ...SlogOption) (close io.Closer, err
 	}
 	for _, opt := range opts {
 		opt.SetOption(options)
-
 	}
 
 	var handler slog.Handler = NewHandler(f, options)
@@ -63,13 +64,15 @@ type SlogOption interface {
 
 type SlogHideTime struct{}
 
-func (SlogHideTime) SetOption(opts *slog.HandlerOptions) {
-	opts.ReplaceAttr = func(groups []string, attr slog.Attr) slog.Attr {
-		if attr.Key == slog.TimeKey {
-			return slog.Attr{}
-		}
-		return attr
+func remove_time(groups []string, attr slog.Attr) slog.Attr {
+	if attr.Key == slog.TimeKey {
+		return slog.Attr{}
 	}
+	return attr
+}
+
+func (SlogHideTime) SetOption(opts *slog.HandlerOptions) {
+	opts.ReplaceAttr = remove_time
 }
 
 func (SlogHideTime) SetHander(_ io.Writer, _ *slog.HandlerOptions) slog.Handler {
@@ -109,3 +112,22 @@ func (antsSlogger) Printf(format string, args ...any) {
 }
 
 var AntsSlogger antsSlogger
+
+func Iter2Group(it iter.Seq2[string, any]) slog.Value {
+	values := make([]slog.Attr, 0)
+	for k, v := range it {
+		switch tv := v.(type) {
+		case map[string]any:
+			values = append(values, slog.Any(k, Map2Group(tv)))
+		case iter.Seq2[string, any]:
+			values = append(values, slog.Any(k, Iter2Group(tv)))
+		default:
+			values = append(values, slog.Any(k, v))
+		}
+	}
+	return slog.GroupValue(values...)
+}
+
+func Map2Group(m map[string]any) slog.Value {
+	return Iter2Group(maps.All(m))
+}
