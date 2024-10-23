@@ -1,5 +1,9 @@
 package common
 
+import (
+	"iter"
+)
+
 func AnySliceReplaceNil(in []string) (out []any) {
 	out = make([]any, len(in))
 	for i, arg := range in {
@@ -20,12 +24,32 @@ func SliceAssert[T any](input []any) (output []T) {
 	return
 }
 
+func SliceAssertIter[T any](input []any) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for _, i := range input {
+			if !yield(i.(T)) {
+				return
+			}
+		}
+	}
+}
+
 func SliceAny[T any](in []T) (out []any) {
 	out = make([]any, len(in))
 	for i, v := range in {
 		out[i] = v
 	}
 	return
+}
+
+func SliceAnyIter[T any](in []T) iter.Seq[any] {
+	return func(yield func(any) bool) {
+		for _, i := range in {
+			if !yield(i) {
+				return
+			}
+		}
+	}
 }
 
 func AnySlice[T any](in []T) []any {

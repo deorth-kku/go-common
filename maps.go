@@ -1,6 +1,7 @@
 package common
 
 import (
+	"iter"
 	"maps"
 	"slices"
 )
@@ -41,18 +42,38 @@ func MapMerge[K comparable, V any](in ...map[K]V) (out map[K]V) {
 	}
 }
 
-func MapAssert[T any](input map[string]any) (output map[string]T) {
-	output = make(map[string]T)
+func MapAssert[K comparable, V any](input map[K]any) (output map[K]V) {
+	output = make(map[K]V, len(input))
 	for k, v := range input {
-		output[k] = v.(T)
+		output[k] = v.(V)
 	}
 	return
 }
 
-func MapAny[T any](input map[string]T) (output map[string]any) {
-	output = make(map[string]any)
+func MapAssertIter[K comparable, V any](input map[K]any) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for k, v := range input {
+			if !yield(k, v.(V)) {
+				return
+			}
+		}
+	}
+}
+
+func MapAny[K comparable, T any](input map[K]T) (output map[K]any) {
+	output = make(map[K]any, len(input))
 	for k, v := range input {
 		output[k] = v
 	}
 	return
+}
+
+func MapAnyIter[K comparable, T any](input map[K]T) iter.Seq2[K, any] {
+	return func(yield func(K, any) bool) {
+		for k, v := range input {
+			if !yield(k, v) {
+				return
+			}
+		}
+	}
 }
