@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"log/slog"
 	"testing"
 )
@@ -55,4 +56,23 @@ func TestSetGroup(t *testing.T) {
 		},
 	}))
 
+}
+
+func TestStruct(t *testing.T) {
+	a := struct {
+		A int
+		B string
+		M map[string]any
+	}{
+		A: 1,
+		B: "2",
+		M: map[string]any{
+			"test": 1,
+		},
+	}
+	m, err := Struct2Map(a)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(m)
 }
