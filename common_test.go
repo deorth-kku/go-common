@@ -34,20 +34,19 @@ func TestNaN32(t *testing.T) {
 }
 
 func TestSetLog(t *testing.T) {
-	closer, err := SetLog("", "DEBUG", SlogHideTime{}, SlogJson{})
+	err := SetLog("", "DEBUG", "JSON", SlogHideTime{})
 	if err != nil {
 		t.Error(err)
 	}
-	defer closer.Close()
+
 	slog.Debug("test")
 }
 
 func TestSetGroup(t *testing.T) {
-	closer, err := SetLog("", "DEBUG", SlogHideTime{})
+	err := SetLog("", "DEBUG", "DEFAULT", SlogHideTime{})
 	if err != nil {
 		t.Error(err)
 	}
-	defer closer.Close()
 	slog.Info("test", "test", Map2Group(map[string]any{
 		"a": 1,
 		"b": 2,
@@ -79,11 +78,11 @@ func TestSlogIterMap(t *testing.T) {
 		"a": 1,
 		"b": 2,
 	}
-	closer, err := SetLog("", "DEBUG", SlogHideTime{}, SlogIter{}, SlogMap{})
+	err := SetLog("", "DEBUG", "DEFAULT", SlogHideTime{}, SlogIter{}, SlogMap{})
 	if err != nil {
 		t.Error(err)
 	}
-	defer closer.Close()
+
 	slog.Info("test log iter and map", "iter", maps.All(m), "map", m)
 }
 
@@ -101,10 +100,9 @@ func TestSlogStruct(t *testing.T) {
 			"test": 1,
 		},
 	}
-	closer, err := SetLog("", "DEBUG", SlogStruct[mix]{}, SlogHideTime{}, SlogIter{}, SlogMap{})
+	err := SetLog("", "DEBUG", "DEFAULT", SlogStruct[mix]{}, SlogHideTime{}, SlogIter{}, SlogMap{})
 	if err != nil {
 		t.Error(err)
 	}
-	defer closer.Close()
 	slog.Info("test struct", "a", a)
 }
