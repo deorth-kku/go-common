@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -20,19 +21,32 @@ func NewHttpServer() (server HttpServer) {
 	return
 }
 
+// If not found, FileMode = 0600
+func FileWithMode(str string) (file string, fm os.FileMode, err error) {
+	file, m, found := strings.Cut(str, ",")
+	if found {
+		var t uint64
+		t, err = strconv.ParseUint(m, 8, 32)
+		if err != nil {
+			err = fmt.Errorf("failed to parse mode %s :%s", m, err)
+			return
+		}
+		fm = os.FileMode(t)
+	} else {
+		fm = 0600
+	}
+	return
+}
+
 func (se *HttpServer) ListenAndServe(listen string) (err error) {
 	var lis net.Listener
 	if filepath.IsAbs(listen) {
-		f, m, found := strings.Cut(listen, ",")
-		if found {
-			var t uint64
-			t, err = strconv.ParseUint(m, 8, 32)
-			if err != nil {
-				err = fmt.Errorf("failed to parse mode %s :%s", m, err)
-				return
-			}
-			umask := int(^t)
-			Umask(umask)
+		f, m, err := FileWithMode(listen)
+		if err != nil {
+			return err
+		}
+		if m != 0 {
+			Umask(int(^m))
 		}
 		addr := &net.UnixAddr{Name: f, Net: "unix"}
 		lis, err = net.ListenUnix("unix", addr)

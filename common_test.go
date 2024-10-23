@@ -106,3 +106,14 @@ func TestSlogStruct(t *testing.T) {
 	}
 	slog.Info("test struct", "a", a)
 }
+
+func TestParseMode(t *testing.T) {
+	_, m, err := FileWithMode("test,0666")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if m != 0666 {
+		t.Error("wrong")
+	}
+}
