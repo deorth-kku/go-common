@@ -60,11 +60,7 @@ func TestSetGroup(t *testing.T) {
 }
 
 func TestStruct(t *testing.T) {
-	a := struct {
-		A int
-		B string
-		M map[string]any
-	}{
+	a := mix{
 		A: 1,
 		B: "2",
 		M: map[string]any{
@@ -89,4 +85,26 @@ func TestSlogIterMap(t *testing.T) {
 	}
 	defer closer.Close()
 	slog.Info("test log iter and map", "iter", maps.All(m), "map", m)
+}
+
+type mix struct {
+	A int
+	B string
+	M map[string]any
+}
+
+func TestSlogStruct(t *testing.T) {
+	a := mix{
+		A: 1,
+		B: "2",
+		M: map[string]any{
+			"test": 1,
+		},
+	}
+	closer, err := SetLog("", "DEBUG", SlogStruct[mix]{}, SlogHideTime{}, SlogIter{}, SlogMap{})
+	if err != nil {
+		t.Error(err)
+	}
+	defer closer.Close()
+	slog.Info("test struct", "a", a)
 }
