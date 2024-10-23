@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"iter"
@@ -138,13 +139,23 @@ var (
 	_ SlogOption = SlogStruct[any]{}
 )
 
-type antsSlogger struct{}
-
-func (antsSlogger) Printf(format string, args ...any) {
-	slog.Debug(fmt.Sprintf(format, args...))
+type AntsLogger struct {
+	*slog.Logger
+	slog.Leveler
 }
 
-var AntsSlogger antsSlogger
+func (al AntsLogger) Printf(format string, args ...any) {
+	if al.Logger == nil {
+		al.Logger = slog.Default()
+	}
+	if al.Leveler == nil {
+		al.Leveler = slog.LevelInfo
+	}
+	al.Logger.Log(context.Background(), al.Leveler.Level(), fmt.Sprintf(format, args...))
+}
+
+// actually, ants only print log when worker panic, so this is not very useful
+var AntsSlogger = AntsLogger{nil, slog.LevelDebug}
 
 func Iter2Group(it iter.Seq2[string, any]) slog.Value {
 	values := make([]slog.Attr, 0)
