@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -107,7 +108,10 @@ func (h *MyHandler) appendAttr(buf []byte, prefix string, a slog.Attr) []byte {
 	if h.opts.ReplaceAttr != nil {
 		var groups []string
 		if prefix != h.prefix {
-			groups = strings.Split(prefix[len(h.prefix)+1:], ".")
+			groups = strings.Split(prefix[len(h.prefix):], ".")
+			groups = slices.DeleteFunc(groups, func(s string) bool {
+				return len(s) == 0
+			})
 		}
 		a = h.opts.ReplaceAttr(groups, a)
 	}
