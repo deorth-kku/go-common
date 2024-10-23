@@ -106,7 +106,7 @@ func convert_iter(_ []string, attr slog.Attr) slog.Attr {
 	switch it := attr.Value.Any().(type) {
 	case iter.Seq2[string, any]:
 		attr.Value = Iter2Group(it)
-	case func(func(string, any) bool):
+	case Seq2[string, any]:
 		attr.Value = Iter2Group(it)
 	}
 	return attr
@@ -146,13 +146,13 @@ func (antsSlogger) Printf(format string, args ...any) {
 
 var AntsSlogger antsSlogger
 
-func Iter2Group(it iter.Seq2[string, any]) slog.Value {
+func Iter2Group(it Seq2[string, any]) slog.Value {
 	values := make([]slog.Attr, 0)
 	for k, v := range it {
 		switch tv := v.(type) {
 		case map[string]any:
 			values = append(values, slog.Any(k, Map2Group(tv)))
-		case iter.Seq2[string, any]:
+		case Seq2[string, any]:
 			values = append(values, slog.Any(k, Iter2Group(tv)))
 		default:
 			values = append(values, slog.Any(k, v))

@@ -1,7 +1,6 @@
 package common
 
 import (
-	"iter"
 	"maps"
 	"slices"
 )
@@ -50,8 +49,8 @@ func MapAssert[K comparable, V any](input map[K]any) (output map[K]V) {
 	return
 }
 
-func MapAssertIter[K comparable, V any](input map[K]any) iter.Seq2[K, V] {
-	return func(yield func(K, V) bool) {
+func MapAssertIter[K comparable, V any](input map[K]any) Seq2[K, V] {
+	return func(yield Yield2[K, V]) {
 		for k, v := range input {
 			if !yield(k, v.(V)) {
 				return
@@ -68,8 +67,8 @@ func MapAny[K comparable, T any](input map[K]T) (output map[K]any) {
 	return
 }
 
-func MapAnyIter[K comparable, T any](input map[K]T) iter.Seq2[K, any] {
-	return func(yield func(K, any) bool) {
+func MapAnyIter[K comparable, T any](input map[K]T) Seq2[K, any] {
+	return func(yield Yield2[K, any]) {
 		for k, v := range input {
 			if !yield(k, v) {
 				return
