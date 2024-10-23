@@ -179,6 +179,8 @@ var (
 	_ SlogOption = SlogJson{}
 	_ SlogOption = SlogHideTime{}
 	_ SlogOption = SlogIter{}
+	_ SlogOption = SlogMap{}
+	_ SlogOption = SlogStruct[any]{}
 )
 
 type antsSlogger struct{}
