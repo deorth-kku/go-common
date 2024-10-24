@@ -2,8 +2,6 @@ package common
 
 import (
 	"fmt"
-	"log/slog"
-	"maps"
 	"testing"
 )
 
@@ -33,29 +31,10 @@ func TestNaN32(t *testing.T) {
 	}
 }
 
-func TestSetLog(t *testing.T) {
-	err := SetLog("", "DEBUG", "JSON", SlogHideTime{})
-	if err != nil {
-		t.Error(err)
-	}
-
-	slog.Debug("test")
-}
-
-func TestSetGroup(t *testing.T) {
-	err := SetLog("", "DEBUG", "DEFAULT", SlogHideTime{})
-	if err != nil {
-		t.Error(err)
-	}
-	slog.Info("test", "test", Map2Group(map[string]any{
-		"a": 1,
-		"b": 2,
-		"g": map[string]any{
-			"a": 1,
-			"b": 2,
-		},
-	}))
-
+type mix struct {
+	A int
+	B string
+	M map[string]any
 }
 
 func TestStruct(t *testing.T) {
@@ -71,40 +50,6 @@ func TestStruct(t *testing.T) {
 		t.Error(err)
 	}
 	fmt.Println(m)
-}
-
-func TestSlogIterMap(t *testing.T) {
-	m := map[string]any{
-		"a": 1,
-		"b": 2,
-	}
-	err := SetLog("", "DEBUG", "DEFAULT", SlogHideTime{}, SlogIter{}, SlogMap{})
-	if err != nil {
-		t.Error(err)
-	}
-
-	slog.Info("test log iter and map", "iter", maps.All(m), "map", m)
-}
-
-type mix struct {
-	A int
-	B string
-	M map[string]any
-}
-
-func TestSlogStruct(t *testing.T) {
-	a := mix{
-		A: 1,
-		B: "2",
-		M: map[string]any{
-			"test": 1,
-		},
-	}
-	err := SetLog("", "DEBUG", "DEFAULT", SlogStruct[mix]{}, SlogHideTime{}, SlogIter{}, SlogMap{})
-	if err != nil {
-		t.Error(err)
-	}
-	slog.Info("test struct", "a", a)
 }
 
 func TestParseMode(t *testing.T) {

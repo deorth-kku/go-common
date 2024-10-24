@@ -66,10 +66,26 @@ func (SlogAddSource) SetOption(opts *slog.HandlerOptions) {
 	opts.AddSource = true
 }
 
+type SlogAddSourceFunc struct {
+	Func func() bool
+}
+
+func (s SlogAddSourceFunc) removeSource(groups []string, attr slog.Attr) slog.Attr {
+	if len(groups) == 0 && attr.Key == slog.SourceKey && !s.Func() {
+		return slog.Attr{}
+	}
+	return attr
+}
+
+func (s SlogAddSourceFunc) SetOption(opts *slog.HandlerOptions) {
+	opts.AddSource = true
+	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.removeSource)
+}
+
 type SlogHideTime struct{}
 
-func remove_time(_ []string, attr slog.Attr) slog.Attr {
-	if attr.Key == slog.TimeKey {
+func remove_time(groups []string, attr slog.Attr) slog.Attr {
+	if len(groups) == 0 && attr.Key == slog.TimeKey {
 		return slog.Attr{}
 	}
 	return attr
@@ -79,8 +95,21 @@ func (SlogHideTime) SetOption(opts *slog.HandlerOptions) {
 	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, remove_time)
 }
 
-func (SlogHideTime) SetHander(_ io.Writer, _ *slog.HandlerOptions) slog.Handler {
-	return nil
+type SlogQuoteAttr struct {
+	Key    string
+	Prefix string
+	Suffix string
+}
+
+func (s SlogQuoteAttr) quote_attr(groups []string, attr slog.Attr) slog.Attr {
+	if len(groups) == 0 && attr.Key == s.Key {
+		return slog.String(s.Key, s.Prefix+attr.Value.String()+s.Suffix)
+	}
+	return attr
+}
+
+func (s SlogQuoteAttr) SetOption(opts *slog.HandlerOptions) {
+	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.quote_attr)
 }
 
 type SlogMap struct{}
@@ -130,14 +159,6 @@ func (SlogStruct[T]) convert_struct(_ []string, attr slog.Attr) slog.Attr {
 func (s SlogStruct[T]) SetOption(opts *slog.HandlerOptions) {
 	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.convert_struct)
 }
-
-var (
-	_ SlogOption = SlogAddSource{}
-	_ SlogOption = SlogHideTime{}
-	_ SlogOption = SlogIter{}
-	_ SlogOption = SlogMap{}
-	_ SlogOption = SlogStruct[any]{}
-)
 
 type AntsLogger struct {
 	*slog.Logger

@@ -62,16 +62,23 @@ func (h *MyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	}
 }
 
+func getSource(pc uintptr) string {
+	fs := runtime.CallersFrames([]uintptr{pc})
+	f, _ := fs.Next()
+	return f.File + ":" + strconv.Itoa(f.Line)
+}
+
 func (h *MyHandler) Handle(ctx context.Context, r slog.Record) error {
 	var buf []byte
-
 	if h.opts.ReplaceAttr != nil {
 		key := slog.TimeKey
 		val := r.Time.Round(0)
 		timeattr := h.opts.ReplaceAttr(nil, slog.Time(key, val))
-		var ok bool
-		if r.Time, ok = timeattr.Value.Any().(time.Time); !ok {
+		if timeattr.Value.Kind() != slog.KindTime || timeattr.Key != slog.TimeKey {
+			r.Time = time.Time{}
 			h.appendAttr(buf, h.prefix, timeattr)
+		} else {
+			r.Time = timeattr.Value.Time()
 		}
 	}
 	if !r.Time.IsZero() {
@@ -80,18 +87,51 @@ func (h *MyHandler) Handle(ctx context.Context, r slog.Record) error {
 	}
 
 	levText := r.Level.String()
-
-	buf = append(buf, levText...)
-	buf = append(buf, ' ')
-	if h.opts.AddSource && r.PC != 0 {
-		fs := runtime.CallersFrames([]uintptr{r.PC})
-		f, _ := fs.Next()
-		buf = append(buf, f.File...)
-		buf = append(buf, ':')
-		buf = strconv.AppendInt(buf, int64(f.Line), 10)
+	if h.opts.ReplaceAttr != nil {
+		lvattr := h.opts.ReplaceAttr(nil, slog.Any(slog.LevelKey, r.Level))
+		if lvattr.Key != slog.LevelKey {
+			levText = ""
+			h.appendAttr(buf, h.prefix, lvattr)
+		} else {
+			levText = lvattr.Value.String()
+		}
+	}
+	if len(levText) != 0 {
+		buf = append(buf, levText...)
 		buf = append(buf, ' ')
 	}
-	buf = append(buf, r.Message...)
+
+	if h.opts.AddSource && r.PC != 0 {
+		source := getSource(r.PC)
+		if h.opts.ReplaceAttr != nil {
+			sourceAttr := h.opts.ReplaceAttr(nil, slog.String(slog.SourceKey, source))
+			if sourceAttr.Key != slog.SourceKey || sourceAttr.Value.Kind() != slog.KindString {
+				source = ""
+				h.appendAttr(buf, h.prefix, sourceAttr)
+			} else {
+				source = sourceAttr.Value.String()
+			}
+		}
+		if len(source) != 0 {
+			buf = append(buf, source...)
+			buf = append(buf, ' ')
+		}
+	}
+
+	if h.opts.ReplaceAttr != nil {
+		msgattr := h.opts.ReplaceAttr(nil, slog.String(slog.MessageKey, r.Message))
+		if msgattr.Value.Kind() != slog.KindString || msgattr.Key != slog.MessageKey {
+			r.Message = ""
+			h.appendAttr(buf, h.prefix, msgattr)
+		} else {
+			r.Message = msgattr.Value.String()
+		}
+	}
+
+	if len(r.Message) != 0 {
+		buf = append(buf, r.Message...)
+	}
+
 	buf = append(buf, h.preformat...)
 	r.Attrs(func(a slog.Attr) bool {
 		buf = h.appendAttr(buf, h.prefix, a)

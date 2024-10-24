@@ -52,6 +52,11 @@ const (
 )
 
 func GetLogger(file io.Writer, lv slog.Leveler, format LogFormat, opts ...SlogOption) (logger *slog.Logger, err error) {
+	handler, err := GetHandler(file, lv, format, opts...)
+	return slog.New(handler), nil
+}
+
+func GetHandler(file io.Writer, lv slog.Leveler, format LogFormat, opts ...SlogOption) (handler slog.Handler, err error) {
 	options := &slog.HandlerOptions{
 		Level:       lv,
 		ReplaceAttr: nil,
@@ -60,7 +65,6 @@ func GetLogger(file io.Writer, lv slog.Leveler, format LogFormat, opts ...SlogOp
 	for _, opt := range opts {
 		opt.SetOption(options)
 	}
-	var handler slog.Handler
 	switch format {
 	case DefaultFormat:
 		handler = NewHandler(file, options)
@@ -69,8 +73,7 @@ func GetLogger(file io.Writer, lv slog.Leveler, format LogFormat, opts ...SlogOp
 	case JsonFormat:
 		handler = slog.NewJSONHandler(file, options)
 	default:
-		err = fmt.Errorf("%d is not a valid log format", format)
-		return
+		return nil, fmt.Errorf("%d is not a valid log format", format)
 	}
-	return slog.New(handler), nil
+	return
 }
