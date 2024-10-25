@@ -15,6 +15,7 @@ var (
 	_ SlogOption = SlogStruct[any]{}
 	_ SlogOption = SlogAddSourceFunc{}
 	_ SlogOption = SlogQuoteAttr{}
+	_ SlogOption = SlogSlice[any]{}
 )
 
 func TestSetLog(t *testing.T) {
@@ -88,4 +89,27 @@ func TestQuoteAttr(t *testing.T) {
 		return
 	}
 	slog.Info("test quote attr")
+}
+
+func TestSlice(t *testing.T) {
+	a := mix{
+		A: 1,
+		B: "2",
+		M: map[string]any{
+			"test": 1,
+		},
+	}
+	sli := []any{"a", a, 1}
+	err := SetLog("", "DEBUG", "", SlogSlice[any]{}, SlogStruct[mix]{})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	slog.Info("test slice", "slice", sli)
+	err = SetLog("", "DEBUG", "JSON")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	slog.Info("test slice", "slice", sli)
 }

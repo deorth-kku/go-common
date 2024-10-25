@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"maps"
 	"os"
+	"strconv"
 )
 
 func SetLog(file string, level string, format string, opts ...SlogOption) (err error) {
@@ -158,6 +159,30 @@ func (SlogStruct[T]) convert_struct(_ []string, attr slog.Attr) slog.Attr {
 
 func (s SlogStruct[T]) SetOption(opts *slog.HandlerOptions) {
 	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.convert_struct)
+}
+
+type SlogSlice[T any] struct{}
+
+func sliceconv[Slice ~[]E, E any](s Slice) iter.Seq2[string, any] {
+	return func(yield func(string, any) bool) {
+		for i, v := range s {
+			if !yield(strconv.Itoa(i), v) {
+				return
+			}
+		}
+	}
+}
+
+func (SlogSlice[T]) convert_slice(_ []string, attr slog.Attr) slog.Attr {
+	a := attr.Value.Any()
+	if sli, ok := a.([]T); ok {
+		attr.Value = Iter2Group(sliceconv(sli))
+	}
+	return attr
+}
+
+func (s SlogSlice[T]) SetOption(opts *slog.HandlerOptions) {
+	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.convert_slice)
 }
 
 type AntsLogger struct {
