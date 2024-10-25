@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"io"
 	"log/slog"
 	"os"
@@ -10,10 +11,10 @@ type Logger struct {
 	*slog.Logger
 	hdl *AtomicHandler
 	lv  *slog.LevelVar
-	f   io.WriteCloser
+	f   io.Writer
 }
 
-func NewLogger(f io.WriteCloser, lv *slog.LevelVar, format LogFormat, opts ...SlogOption) (lg *Logger) {
+func NewLogger(f io.Writer, lv *slog.LevelVar, format LogFormat, opts ...SlogOption) (lg *Logger) {
 	lg = new(Logger)
 	lg.hdl = new(AtomicHandler)
 	lg.Reload(f, lv, format, opts...)
@@ -21,11 +22,11 @@ func NewLogger(f io.WriteCloser, lv *slog.LevelVar, format LogFormat, opts ...Sl
 	return
 }
 
-func (lg *Logger) Reload(f io.WriteCloser, lv *slog.LevelVar, format LogFormat, opts ...SlogOption) {
+func (lg *Logger) Reload(f io.Writer, lv *slog.LevelVar, format LogFormat, opts ...SlogOption) {
 	lg.hdl.Store(f, lv, format, opts...)
 	lg.lv = lv
-	if lg.f != nil && lg.f != os.Stderr && lg.f != os.Stdout {
-		lg.f.Close()
+	if closer, ok := lg.f.(io.Closer); ok && lg.f != os.Stderr && lg.f != os.Stdout {
+		closer.Close()
 	}
 	lg.f = f
 	return
@@ -44,5 +45,5 @@ func (lg *Logger) Rotate() error {
 	if lj, ok := lg.f.(Rotater); ok {
 		return lj.Rotate()
 	}
-	return nil
+	return errors.New("logger is not a lumberjack")
 }

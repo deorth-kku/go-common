@@ -161,8 +161,8 @@ func (s SlogStruct[T]) SetOption(opts *slog.HandlerOptions) {
 }
 
 type AntsLogger struct {
-	*slog.Logger
-	slog.Leveler
+	*slog.Logger // log to logger
+	slog.Leveler // log to level (ants does write with level, you must specify herer)
 }
 
 func (al AntsLogger) Printf(format string, args ...any) {

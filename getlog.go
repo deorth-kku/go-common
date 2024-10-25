@@ -1,3 +1,4 @@
+//go:generate stringer -type=LogFormat -linecomment
 package common
 
 import (
@@ -30,24 +31,23 @@ func (lf *LogFormat) UnmarshalJSON(data []byte) (err error) {
 	return
 }
 
-func ParseLogFormat(str string) (lf LogFormat, err error) {
+func ParseLogFormat(str string) (LogFormat, error) {
 	switch strings.ToUpper(str) {
-	case "", "DEFAULT":
-		lf = DefaultFormat
-	case "TEXT":
-		lf = TextFormat
-	case "JSON":
-		lf = JsonFormat
+	case "", DefaultFormat.String():
+		return DefaultFormat, nil
+	case TextFormat.String():
+		return TextFormat, nil
+	case JsonFormat.String():
+		return JsonFormat, nil
 	default:
 		return 0, fmt.Errorf("%s is not a valid log format name", str)
 	}
-	return
 }
 
 const (
-	DefaultFormat LogFormat = iota
-	TextFormat
-	JsonFormat
+	DefaultFormat LogFormat = iota // DEFAULT
+	TextFormat                     // TEXT
+	JsonFormat                     // JSON
 	formatEnd
 )
 
