@@ -22,7 +22,7 @@ func NewHttpServer() (server HttpServer) {
 }
 
 // If not found, FileMode = 0600
-func FileWithMode(str string) (file string, fm os.FileMode, err error) {
+func FileWithMode(str string) (file string, fm os.FileMode, found bool, err error) {
 	file, m, found := strings.Cut(str, ",")
 	if found {
 		var t uint64
@@ -33,7 +33,7 @@ func FileWithMode(str string) (file string, fm os.FileMode, err error) {
 		}
 		fm = os.FileMode(t)
 	} else {
-		fm = 0600
+		fm = 0000
 	}
 	return
 }
@@ -41,15 +41,18 @@ func FileWithMode(str string) (file string, fm os.FileMode, err error) {
 func (se *HttpServer) ListenAndServe(listen string) (err error) {
 	var lis net.Listener
 	if filepath.IsAbs(listen) {
-		f, m, err := FileWithMode(listen)
+		f, m, found, err := FileWithMode(listen)
 		if err != nil {
 			return err
 		}
-		if m != 0 {
-			Umask(int(^m))
-		}
 		addr := &net.UnixAddr{Name: f, Net: "unix"}
 		lis, err = net.ListenUnix("unix", addr)
+		if err != nil {
+			return err
+		}
+		if found {
+			err = os.Chmod(f, m)
+		}
 	} else {
 		var addr *net.TCPAddr
 		addr, err = net.ResolveTCPAddr("tcp", listen)

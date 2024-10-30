@@ -2,6 +2,8 @@ package common
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -53,7 +55,7 @@ func TestStruct(t *testing.T) {
 }
 
 func TestParseMode(t *testing.T) {
-	_, m, err := FileWithMode("test,0666")
+	_, m, _, err := FileWithMode("test,0666")
 	if err != nil {
 		t.Error(err)
 		return
@@ -61,4 +63,86 @@ func TestParseMode(t *testing.T) {
 	if m != 0666 {
 		t.Error("wrong")
 	}
+}
+
+func TestCheckDirPerm(t *testing.T) {
+	dirname := "/tmp/test.12313"
+	err := CheckDirWritePermission(dirname)
+	if err == nil {
+		t.Error("not exist but no error")
+	} else {
+		fmt.Println("expected no exist error:", err)
+	}
+	err = os.Mkdir(dirname, 0000)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer os.Remove(dirname)
+	err = CheckDirWritePermission(dirname)
+	if err == nil {
+		t.Error("not permissoned but no error")
+	} else {
+		fmt.Println("expected no permission error:", err)
+	}
+	err = os.Chmod(dirname, 0755)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = CheckDirWritePermission(dirname)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestCheckFilePerm(t *testing.T) {
+	filename := "/tmp/abc/123"
+	err := CheckFileWritePermission(filename)
+	if err == nil {
+		t.Error("parent not exist but no error")
+	} else {
+		fmt.Println("expect parent not exist error:", err)
+	}
+
+	dirname := filepath.Dir(filename)
+	err = os.Mkdir(dirname, 0000)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer os.Remove(dirname)
+	err = CheckFileWritePermission(filename)
+	if err == nil {
+		t.Error("parent no permisson but no error")
+	} else {
+		fmt.Println("expected parent no permisson error:", err)
+	}
+
+	f, err := os.Create(filename)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	f.Close()
+	defer os.Remove(filename)
+
+	err = CheckFileWritePermission(filename)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = os.Chmod(filename, 0000)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = CheckFileWritePermission(filename)
+	if err == nil {
+		t.Error("no permisson but no error")
+	} else {
+		fmt.Println("expected no permisson error:", err)
+	}
+
 }
