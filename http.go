@@ -21,8 +21,11 @@ func NewHttpServer() (server HttpServer) {
 	return
 }
 
+const esc = "\x00"
+
 // If not found, FileMode = 0600
 func FileWithMode(str string) (file string, fm os.FileMode, found bool, err error) {
+	str = strings.Replace(str, "\\,", esc, -1)
 	file, m, found := strings.Cut(str, ",")
 	if found {
 		var t uint64
@@ -35,6 +38,7 @@ func FileWithMode(str string) (file string, fm os.FileMode, found bool, err erro
 	} else {
 		fm = 0000
 	}
+	file = strings.Replace(file, esc, ",", -1)
 	return
 }
 

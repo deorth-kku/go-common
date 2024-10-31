@@ -55,7 +55,7 @@ func TestStruct(t *testing.T) {
 }
 
 func TestParseMode(t *testing.T) {
-	_, m, _, err := FileWithMode("test,0666")
+	str, m, _, err := FileWithMode("te\\,st,0666")
 	if err != nil {
 		t.Error(err)
 		return
@@ -63,6 +63,7 @@ func TestParseMode(t *testing.T) {
 	if m != 0666 {
 		t.Error("wrong")
 	}
+	fmt.Println(str)
 }
 
 func TestCheckDirPerm(t *testing.T) {
