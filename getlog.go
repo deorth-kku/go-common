@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"log/slog"
@@ -29,6 +30,10 @@ func (lf *LogFormat) UnmarshalJSON(data []byte) (err error) {
 	}
 	*lf, err = ParseLogFormat(str)
 	return
+}
+
+func (lf *LogFormat) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(lf.String())), nil
 }
 
 func ParseLogFormat(str string) (LogFormat, error) {
