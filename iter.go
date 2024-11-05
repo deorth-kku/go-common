@@ -13,6 +13,22 @@ func NewPair[K any, V any](Key K, Value V) Pair[K, V] {
 
 type PairSlice[K any, V any] []Pair[K, V]
 
+func (ps PairSlice[K, V]) Keys(yield func(K) bool) {
+	for _, pair := range ps {
+		if !yield(pair.Key) {
+			return
+		}
+	}
+}
+
+func (ps PairSlice[K, V]) Values(yield func(V) bool) {
+	for _, pair := range ps {
+		if !yield(pair.Value) {
+			return
+		}
+	}
+}
+
 func (ps PairSlice[K, V]) Range(yield func(K, V) bool) {
 	for _, pair := range ps {
 		if !yield(pair.Key, pair.Value) {
