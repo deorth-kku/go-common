@@ -24,50 +24,31 @@ type Number interface {
 	AnyInt | Float
 }
 
-const (
-	uvnan32 = 0x7FC00001
-	uvnan64 = 0x7FF8000000000001
-)
-
-func Parse[T Number](s string, base int) (t T, err error) {
+func Parse[T Number](s string, base int) (T, error) {
+	var t T
 	size := int(unsafe.Sizeof(t))
 	switch size {
 	case 1:
-		p := (*uint8)(unsafe.Pointer(&t))
-		*p = math.MaxUint8
+		*(*uint8)(unsafe.Pointer(&t)) = math.MaxUint8
 	case 2:
-		p := (*uint16)(unsafe.Pointer(&t))
-		*p = math.MaxUint16
+		*(*uint16)(unsafe.Pointer(&t)) = math.MaxUint16
 	case 4:
-		p := (*uint32)(unsafe.Pointer(&t))
-		*p = uvnan32
-		if t != t {
-			goto float
-		}
-		*p = math.MaxUint32
+		*(*uint32)(unsafe.Pointer(&t)) = math.MaxUint32
 	case 8:
-		p := (*uint64)(unsafe.Pointer(&t))
-		*p = uvnan64
-		if t != t {
-			goto float
-		}
-		*p = math.MaxUint64
+		*(*uint64)(unsafe.Pointer(&t)) = math.MaxUint64
 	default:
 		return 0, ErrorString("unexpect type " + reflect.TypeOf(t).Name())
 	}
-	if t < 0 {
-		var i64 int64
-		i64, err = strconv.ParseInt(s, base, size*8)
-		return T(i64), err
-	} else {
-		var u64 uint64
-		u64, err = strconv.ParseUint(s, base, size*8)
-		return T(u64), err
+	if t != t {
+		f64, err := strconv.ParseFloat(s, size*8)
+		return T(f64), err
 	}
-float:
-	var f64 float64
-	f64, err = strconv.ParseFloat(s, size*8)
-	return T(f64), err
+	if t < 0 {
+		i64, err := strconv.ParseInt(s, base, size*8)
+		return T(i64), err
+	}
+	u64, err := strconv.ParseUint(s, base, size*8)
+	return T(u64), err
 }
 
 func DevidedCeil[T AnyInt](a, b T) T {
@@ -88,6 +69,10 @@ func Roll(n int) int {
 	}
 	return rand.IntN(n)
 }
+
+const (
+	uvnan32 = 0x7FC00001
+)
 
 func Nan32() float32 {
 	return math.Float32frombits(uvnan32)
