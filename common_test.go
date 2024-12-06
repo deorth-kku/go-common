@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
@@ -146,4 +147,71 @@ func TestCheckFilePerm(t *testing.T) {
 		fmt.Println("expected no permisson error:", err)
 	}
 
+}
+
+func TestParse(t *testing.T) {
+	type ii int
+	str := "-1"
+	i, err := Parse[ii](str, 10)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if str != fmt.Sprint(i) {
+		t.Error("not match")
+		return
+	}
+
+	type uu uint16
+	str = "443"
+	u8, err := Parse[uu](str, 10)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if str != fmt.Sprint(u8) {
+		t.Error("not match")
+		return
+	}
+	_, err = Parse[uu]("65536", 10)
+	if err == nil {
+		t.Error("not overflow when it should")
+		return
+	}
+
+	str = "1.2345"
+	fstr := "%.04f"
+	f, err := Parse[float32](str, 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if str != fmt.Sprintf(fstr, f) {
+		t.Error("not match")
+		fmt.Printf("%f", f)
+		return
+	}
+
+	f64, err := Parse[float64](str, 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if str != fmt.Sprintf(fstr, f64) {
+		fmt.Println(f64)
+		t.Error("not match")
+		return
+	}
+
+}
+
+func TestMaxInt(t *testing.T) {
+	type uu uint
+	if MaxInt[uu]() != math.MaxUint {
+		t.Error("not eq")
+	}
+	type ii int
+	if MaxInt[ii]() != math.MaxInt {
+		t.Error("not eq")
+	}
 }

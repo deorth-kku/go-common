@@ -36,3 +36,9 @@ func (ah *AtomicHandler) Store(file io.Writer, lv slog.Leveler, format LogFormat
 	ah.hdl.Store(&handler)
 	return nil
 }
+
+func (ah *AtomicHandler) Clone() *AtomicHandler {
+	n := new(AtomicHandler)
+	n.hdl.Store(ah.hdl.Load())
+	return n
+}

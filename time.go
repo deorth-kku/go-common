@@ -5,17 +5,17 @@ import (
 	"time"
 )
 
-type float interface {
+type Float interface {
 	~float32 | ~float64
 }
 
-func FloatDuration[T float](f T) time.Duration {
+func FloatDuration[T Float](f T) time.Duration {
 	return time.Duration(T(time.Second) * f)
 }
-func Duration[T float](t time.Duration) T {
+func Duration[T Float](t time.Duration) T {
 	return T(t.Seconds())
 }
 
-func TimeoutContext[T float](f T) (context.Context, context.CancelFunc) {
+func TimeoutContext[T Float](f T) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), FloatDuration(f))
 }
