@@ -6,7 +6,7 @@ import (
 	"slices"
 )
 
-func MapKeys[K comparable, V any](in map[K]V) (out []K) {
+func MapKeys[K comparable, V any, M ~map[K]V](in M) (out []K) {
 	if in == nil {
 		return nil
 	}
@@ -20,14 +20,14 @@ func MapKeys[K comparable, V any](in map[K]V) (out []K) {
 	return
 }
 
-func MapKeysSort[K comparable, V any](in map[K]V, sort_func func(a, b K) int) (out []K) {
+func MapKeysSort[K comparable, V any, M ~map[K]V](in M, sort_func func(a, b K) int) (out []K) {
 	out = MapKeys(in)
 	slices.SortFunc(out, sort_func)
 	return
 }
 
 // MapMerge return a new map with all key-value pairs from the sources maps, the new keys and values are set using ordinary assignment.
-func MapMerge[K comparable, V any](in ...map[K]V) (out map[K]V) {
+func MapMerge[K comparable, V any, M ~map[K]V](in ...M) (out M) {
 	switch len(in) {
 	case 0:
 		return nil
@@ -42,7 +42,7 @@ func MapMerge[K comparable, V any](in ...map[K]V) (out map[K]V) {
 	}
 }
 
-func MapAssert[K comparable, V any](input map[K]any) (output map[K]V) {
+func MapAssert[K comparable, V any, M ~map[K]any](input M) (output map[K]V) {
 	output = make(map[K]V, len(input))
 	for k, v := range input {
 		output[k] = v.(V)
@@ -50,7 +50,7 @@ func MapAssert[K comparable, V any](input map[K]any) (output map[K]V) {
 	return
 }
 
-func MapAssertIter[K comparable, V any](input map[K]any) iter.Seq2[K, V] {
+func MapAssertIter[K comparable, V any, M ~map[K]any](input M) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		for k, v := range input {
 			if !yield(k, v.(V)) {
@@ -60,7 +60,7 @@ func MapAssertIter[K comparable, V any](input map[K]any) iter.Seq2[K, V] {
 	}
 }
 
-func MapAny[K comparable, T any](input map[K]T) (output map[K]any) {
+func MapAny[K comparable, T any, M ~map[K]T](input M) (output map[K]any) {
 	output = make(map[K]any, len(input))
 	for k, v := range input {
 		output[k] = v
@@ -68,7 +68,7 @@ func MapAny[K comparable, T any](input map[K]T) (output map[K]any) {
 	return
 }
 
-func MapAnyIter[K comparable, T any](input map[K]T) iter.Seq2[K, any] {
+func MapAnyIter[K comparable, T any, M ~map[K]T](input M) iter.Seq2[K, any] {
 	return func(yield func(K, any) bool) {
 		for k, v := range input {
 			if !yield(k, v) {

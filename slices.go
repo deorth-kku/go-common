@@ -2,6 +2,8 @@ package common
 
 import (
 	"iter"
+	"math/rand/v2"
+	"slices"
 )
 
 func AnySliceReplaceNil(in []string) (out []any) {
@@ -34,7 +36,7 @@ func SliceAssertIter[T any](input []any) iter.Seq[T] {
 	}
 }
 
-func SliceAny[T any](in []T) (out []any) {
+func SliceAny[T any, S ~[]T](in S) (out []any) {
 	out = make([]any, len(in))
 	for i, v := range in {
 		out[i] = v
@@ -42,7 +44,7 @@ func SliceAny[T any](in []T) (out []any) {
 	return
 }
 
-func SliceAnyIter[T any](in []T) iter.Seq[any] {
+func SliceAnyIter[T any, S ~[]T](in S) iter.Seq[any] {
 	return func(yield func(any) bool) {
 		for _, i := range in {
 			if !yield(i) {
@@ -52,17 +54,28 @@ func SliceAnyIter[T any](in []T) iter.Seq[any] {
 	}
 }
 
-func AnySlice[T any](in []T) []any {
+func AnySlice[T any, S ~[]T](in S) []any {
 	return SliceAny(in)
 }
 
-func CutSlice[t any](in []t, l int) (out [][]t) {
-	rounds := len(in) / l
-	out = make([][]t, rounds+1)
+func CutSlice[T any, S ~[]T](in S, l int) []S {
+	return slices.Collect(slices.Chunk(in, l))
+}
 
-	for i := 0; i < rounds; i++ {
-		out[i] = in[i*l : (i+1)*l]
+// SliceRandom return a iterator of given slice with random order without shuffling the slice
+func SliceRandom[T any, S ~[]T](in S) iter.Seq2[int, T] {
+	idxs := rand.Perm(len(in))
+	return func(yield func(int, T) bool) {
+		for _, i := range idxs {
+			if !yield(i, in[i]) {
+				return
+			}
+		}
 	}
-	out[rounds] = in[rounds*l:]
-	return
+}
+
+func SliceShuffle[T any, S ~[]T](in S) {
+	rand.Shuffle(len(in), func(i, j int) {
+		in[i], in[j] = in[j], in[i]
+	})
 }

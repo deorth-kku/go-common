@@ -215,3 +215,18 @@ func TestMaxInt(t *testing.T) {
 		t.Error("not eq")
 	}
 }
+
+func TestRand(t *testing.T) {
+	s := []string{
+		"a",
+		"b",
+		"c",
+	}
+
+	for i, a := range SliceRandom(s) {
+		fmt.Println(i, a)
+	}
+	fmt.Println(s)
+	SliceShuffle(s)
+	fmt.Println(s)
+}

@@ -44,7 +44,7 @@ type SlogOption interface {
 
 type replaceAttr = func(groups []string, attr slog.Attr) slog.Attr
 
-func joinReplaceAttr(a replaceAttr, b replaceAttr) replaceAttr {
+func JoinReplaceAttr(a replaceAttr, b replaceAttr) replaceAttr {
 	if a == nil && b == nil {
 		return nil
 	}
@@ -80,7 +80,7 @@ func (s SlogAddSourceFunc) removeSource(groups []string, attr slog.Attr) slog.At
 
 func (s SlogAddSourceFunc) SetOption(opts *slog.HandlerOptions) {
 	opts.AddSource = true
-	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.removeSource)
+	opts.ReplaceAttr = JoinReplaceAttr(opts.ReplaceAttr, s.removeSource)
 }
 
 type SlogHideTime struct{}
@@ -93,7 +93,7 @@ func remove_time(groups []string, attr slog.Attr) slog.Attr {
 }
 
 func (SlogHideTime) SetOption(opts *slog.HandlerOptions) {
-	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, remove_time)
+	opts.ReplaceAttr = JoinReplaceAttr(opts.ReplaceAttr, remove_time)
 }
 
 type SlogQuoteAttr struct {
@@ -110,7 +110,7 @@ func (s SlogQuoteAttr) quote_attr(groups []string, attr slog.Attr) slog.Attr {
 }
 
 func (s SlogQuoteAttr) SetOption(opts *slog.HandlerOptions) {
-	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.quote_attr)
+	opts.ReplaceAttr = JoinReplaceAttr(opts.ReplaceAttr, s.quote_attr)
 }
 
 type SlogMap struct{}
@@ -124,7 +124,7 @@ func convert_map(_ []string, attr slog.Attr) slog.Attr {
 }
 
 func (SlogMap) SetOption(opts *slog.HandlerOptions) {
-	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, convert_map)
+	opts.ReplaceAttr = JoinReplaceAttr(opts.ReplaceAttr, convert_map)
 }
 
 func (SlogMap) SetHander(_ io.Writer, _ *slog.HandlerOptions) slog.Handler {
@@ -144,7 +144,7 @@ func convert_iter(_ []string, attr slog.Attr) slog.Attr {
 }
 
 func (SlogIter) SetOption(opts *slog.HandlerOptions) {
-	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, convert_iter)
+	opts.ReplaceAttr = JoinReplaceAttr(opts.ReplaceAttr, convert_iter)
 }
 
 type SlogStruct[T any] struct{}
@@ -158,7 +158,7 @@ func (SlogStruct[T]) convert_struct(_ []string, attr slog.Attr) slog.Attr {
 }
 
 func (s SlogStruct[T]) SetOption(opts *slog.HandlerOptions) {
-	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.convert_struct)
+	opts.ReplaceAttr = JoinReplaceAttr(opts.ReplaceAttr, s.convert_struct)
 }
 
 type SlogSlice[T any] struct{}
@@ -182,7 +182,7 @@ func (SlogSlice[T]) convert_slice(_ []string, attr slog.Attr) slog.Attr {
 }
 
 func (s SlogSlice[T]) SetOption(opts *slog.HandlerOptions) {
-	opts.ReplaceAttr = joinReplaceAttr(opts.ReplaceAttr, s.convert_slice)
+	opts.ReplaceAttr = JoinReplaceAttr(opts.ReplaceAttr, s.convert_slice)
 }
 
 type AntsLogger struct {

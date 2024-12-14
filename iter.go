@@ -11,6 +11,20 @@ func NewPair[K any, V any](Key K, Value V) Pair[K, V] {
 	return Pair[K, V]{Key: Key, Value: Value}
 }
 
+func PairSliceCollect[K any, V any](iter iter.Seq2[K, V]) (pairs PairSlice[K, V]) {
+	for k, v := range iter {
+		pairs = append(pairs, NewPair(k, v))
+	}
+	return
+}
+func PairSliceFromMap[K comparable, V any, M ~map[K]V](m M) (pairs PairSlice[K, V]) {
+	pairs = make(PairSlice[K, V], 0, len(m))
+	for k, v := range m {
+		pairs = append(pairs, NewPair(k, v))
+	}
+	return
+}
+
 type PairSlice[K any, V any] []Pair[K, V]
 
 func (ps PairSlice[K, V]) Keys(yield func(K) bool) {
