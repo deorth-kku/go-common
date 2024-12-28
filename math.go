@@ -71,13 +71,36 @@ func Roll(n int) int {
 }
 
 const (
-	uvnan32 = 0x7FC00001
+	uvnan32    = 0x7FC00001
+	uninf32    = 0x7F800000
+	uvneginf32 = 0xFF800000
 )
 
-func Nan32() float32 {
+func NaN32() float32 {
 	return math.Float32frombits(uvnan32)
 }
 
 func IsNaN[F Float](f F) bool {
 	return f != f
+}
+
+func Inf32(sign int) float32 {
+	var v uint32
+	if sign >= 0 {
+		v = uninf32
+	} else {
+		v = uvneginf32
+	}
+	return math.Float32frombits(v)
+}
+
+func IsInf[F Float](f F, sign int) bool {
+	switch unsafe.Sizeof(f) {
+	case 4:
+		return sign >= 0 && f > math.MaxFloat32 || sign <= 0 && f < -math.MaxFloat32
+	case 8:
+		return math.IsInf(float64(f), sign)
+	default:
+		panic("nope")
+	}
 }

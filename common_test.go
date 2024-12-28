@@ -28,8 +28,15 @@ func TestCutSlice(t *testing.T) {
 }
 
 func TestNaN32(t *testing.T) {
-	f := Nan32()
+	f := NaN32()
 	if !IsNaN(f) {
+		t.Error("no!")
+	}
+}
+
+func TestInf32(t *testing.T) {
+	f := Inf32(1)
+	if !IsInf(f, 1) {
 		t.Error("no!")
 	}
 }
@@ -229,4 +236,32 @@ func TestRand(t *testing.T) {
 	fmt.Println(s)
 	SliceShuffle(s)
 	fmt.Println(s)
+}
+
+func BenchmarkInf(b *testing.B) {
+	num := math.Inf(1)
+	for range b.N {
+		IsInf(num, 1)
+	}
+}
+
+func BenchmarkInfStd(b *testing.B) {
+	num := math.Inf(1)
+	for range b.N {
+		math.IsInf(num, 1)
+	}
+}
+
+func BenchmarkInf32(b *testing.B) {
+	num := Inf32(1)
+	for range b.N {
+		IsInf(num, 1)
+	}
+}
+
+func BenchmarkInf32Std(b *testing.B) {
+	num := Inf32(1)
+	for range b.N {
+		math.IsInf(float64(num), 1)
+	}
 }
