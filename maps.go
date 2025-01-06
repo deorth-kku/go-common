@@ -77,3 +77,11 @@ func MapAnyIter[K comparable, T any, M ~map[K]T](input M) iter.Seq2[K, any] {
 		}
 	}
 }
+
+func MapCollect[K comparable, V comparable](it iter.Seq2[K, V], hint int) (m map[K]V) {
+	m = make(map[K]V, hint)
+	for k, v := range it {
+		m[k] = v
+	}
+	return
+}

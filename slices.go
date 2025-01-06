@@ -79,3 +79,11 @@ func SliceShuffle[T any, S ~[]T](in S) {
 		in[i], in[j] = in[j], in[i]
 	})
 }
+
+func SliceCollect[T any](it iter.Seq[T], hint int) (s []T) {
+	s = make([]T, 0, hint)
+	for i := range it {
+		s = append(s, i)
+	}
+	return
+}
