@@ -6,18 +6,6 @@ import (
 	"slices"
 )
 
-func AnySliceReplaceNil(in []string) (out []any) {
-	out = make([]any, len(in))
-	for i, arg := range in {
-		if len(arg) == 0 {
-			out[i] = nil
-		} else {
-			out[i] = arg
-		}
-	}
-	return
-}
-
 func SliceAssert[T any](input []any) (output []T) {
 	output = make([]T, len(input))
 	for i, v := range input {
@@ -59,7 +47,7 @@ func AnySlice[T any, S ~[]T](in S) []any {
 }
 
 func CutSlice[T any, S ~[]T](in S, l int) []S {
-	return slices.Collect(slices.Chunk(in, l))
+	return SliceCollect(slices.Chunk(in, l), DevidedCeil(len(in), l))
 }
 
 // SliceRandom return a iterator of given slice with random order without shuffling the slice

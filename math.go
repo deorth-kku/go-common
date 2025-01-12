@@ -52,7 +52,10 @@ func Parse[T Number](s string, base int) (T, error) {
 }
 
 func DevidedCeil[T AnyInt](a, b T) T {
-	return T(math.Ceil(float64(a) / float64(b)))
+	if (a < 0) == (b < 0) && a%b != 0 {
+		return a/b + 1
+	}
+	return a / b
 }
 
 func MaxInt[T AnyInt]() (t T) {

@@ -1,10 +1,13 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"math"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 )
 
@@ -263,5 +266,33 @@ func BenchmarkInf32Std(b *testing.B) {
 	num := Inf32(1)
 	for range b.N {
 		math.IsInf(float64(num), 1)
+	}
+}
+
+type interror int
+
+func (i interror) Error() string {
+	return strconv.Itoa(int(i))
+}
+
+func TestUnwraps(t *testing.T) {
+	err := errors.New("start")
+	for i := range interror(10) {
+		err = fmt.Errorf("this is %w, %w", err, error(i))
+	}
+	for i := range Unwraps(err) {
+		fmt.Println(i.Error())
+	}
+	fmt.Println(err.Error())
+}
+
+func TestMod(t *testing.T) {
+	var b int
+	fmt.Println(1 / b)
+}
+
+func BenchmarkCeil(b *testing.B) {
+	for range b.N {
+		DevidedCeil(rand.Int(), rand.Int())
 	}
 }
