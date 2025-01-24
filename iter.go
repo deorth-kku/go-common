@@ -101,3 +101,13 @@ func SafeRange2[K any, V any](fs ...iter.Seq2[K, V]) iter.Seq2[K, V] {
 		}
 	}
 }
+
+type PairChan[K any, V any] chan Pair[K, V]
+
+func (pc PairChan[K, V]) Range(yield func(K, V) bool) {
+	for pair := range pc {
+		if !yield(pair.Key, pair.Value) {
+			return
+		}
+	}
+}

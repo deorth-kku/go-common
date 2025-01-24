@@ -7,8 +7,10 @@ import (
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func TestHttp(t *testing.T) {
@@ -294,5 +296,19 @@ func TestMod(t *testing.T) {
 func BenchmarkCeil(b *testing.B) {
 	for range b.N {
 		DevidedCeil(rand.Int(), rand.Int())
+	}
+}
+
+func BenchmarkReflectIsZero(b *testing.B) {
+	var t time.Time
+	for range b.N {
+		reflect.ValueOf(t).IsZero()
+	}
+}
+
+func BenchmarkGenericsIsZero(b *testing.B) {
+	var t time.Time
+	for range b.N {
+		IsZero(t)
 	}
 }

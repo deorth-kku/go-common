@@ -83,6 +83,17 @@ func NaN32() float32 {
 	return math.Float32frombits(uvnan32)
 }
 
+func NaN[T Float]() T {
+	switch unsafe.Sizeof(T(0)) {
+	case 4:
+		return T(NaN32())
+	case 8:
+		return T(math.NaN())
+	default:
+		panic("unexpected float size " + strconv.Itoa(int(unsafe.Sizeof(T(0)))))
+	}
+}
+
 func IsNaN[F Float](f F) bool {
 	return f != f
 }
@@ -95,6 +106,17 @@ func Inf32(sign int) float32 {
 		v = uvneginf32
 	}
 	return math.Float32frombits(v)
+}
+
+func Inf[T Float](sign int) T {
+	switch unsafe.Sizeof(T(0)) {
+	case 4:
+		return T(Inf32(sign))
+	case 8:
+		return T(math.Inf(sign))
+	default:
+		panic("unexpected float size " + strconv.Itoa(int(unsafe.Sizeof(T(0)))))
+	}
 }
 
 func IsInf[F Float](f F, sign int) bool {
