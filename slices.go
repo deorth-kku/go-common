@@ -1,7 +1,6 @@
 package common
 
 import (
-	"iter"
 	"math/rand/v2"
 	"slices"
 )
@@ -14,8 +13,8 @@ func SliceAssert[T any](input []any) (output []T) {
 	return
 }
 
-func SliceAssertIter[T any](input []any) iter.Seq[T] {
-	return func(yield func(T) bool) {
+func SliceAssertIter[T any](input []any) Seq[T] {
+	return func(yield Yield[T]) {
 		for _, i := range input {
 			if !yield(i.(T)) {
 				return
@@ -32,8 +31,8 @@ func SliceAny[T any, S ~[]T](in S) (out []any) {
 	return
 }
 
-func SliceAnyIter[T any, S ~[]T](in S) iter.Seq[any] {
-	return func(yield func(any) bool) {
+func SliceAnyIter[T any, S ~[]T](in S) Seq[any] {
+	return func(yield Yield[any]) {
 		for _, i := range in {
 			if !yield(i) {
 				return
@@ -51,9 +50,9 @@ func CutSlice[T any, S ~[]T](in S, l int) []S {
 }
 
 // SliceRandom return a iterator of given slice with random order without shuffling the slice
-func SliceRandom[T any, S ~[]T](in S) iter.Seq2[int, T] {
+func SliceRandom[T any, S ~[]T](in S) Seq2[int, T] {
 	idxs := rand.Perm(len(in))
-	return func(yield func(int, T) bool) {
+	return func(yield Yield2[int, T]) {
 		for _, i := range idxs {
 			if !yield(i, in[i]) {
 				return
@@ -68,10 +67,16 @@ func SliceShuffle[T any, S ~[]T](in S) {
 	})
 }
 
-func SliceCollect[T any](it iter.Seq[T], hint int) (s []T) {
+func SliceCollect[T any](it Seq[T], hint int) (s []T) {
 	s = make([]T, 0, hint)
 	for i := range it {
 		s = append(s, i)
 	}
 	return
+}
+
+func SlicesDelete[T comparable, S ~[]T](in S, within ...T) S {
+	return slices.DeleteFunc(in, func(v T) bool {
+		return slices.Contains(within, v)
+	})
 }

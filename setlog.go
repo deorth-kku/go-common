@@ -137,7 +137,7 @@ func convert_iter(_ []string, attr slog.Attr) slog.Attr {
 	switch it := attr.Value.Any().(type) {
 	case iter.Seq2[string, any]:
 		attr.Value = Iter2Group(it)
-	case func(func(string, any) bool):
+	case Seq2[string, any]:
 		attr.Value = Iter2Group(it)
 	}
 	return attr
@@ -163,8 +163,8 @@ func (s SlogStruct[T]) SetOption(opts *slog.HandlerOptions) {
 
 type SlogSlice[T any] struct{}
 
-func sliceconv[Slice ~[]E, E any](s Slice) iter.Seq2[string, any] {
-	return func(yield func(string, any) bool) {
+func sliceconv[Slice ~[]E, E any](s Slice) Seq2[string, any] {
+	return func(yield Yield2[string, any]) {
 		for i, v := range s {
 			if !yield(strconv.Itoa(i), v) {
 				return
@@ -203,12 +203,14 @@ func (al AntsLogger) Printf(format string, args ...any) {
 // actually, ants only print log when worker panic, so this is not very useful
 var AntsSlogger = AntsLogger{nil, slog.LevelDebug}
 
-func Iter2Group(it iter.Seq2[string, any]) slog.Value {
+func Iter2Group(it Seq2[string, any]) slog.Value {
 	values := make([]slog.Attr, 0)
 	for k, v := range it {
 		switch tv := v.(type) {
 		case map[string]any:
 			values = append(values, slog.Any(k, Map2Group(tv)))
+		case Seq2[string, any]:
+			values = append(values, slog.Any(k, Iter2Group(tv)))
 		case iter.Seq2[string, any]:
 			values = append(values, slog.Any(k, Iter2Group(tv)))
 		default:

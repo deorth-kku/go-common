@@ -1,5 +1,7 @@
 package common
 
+import "maps"
+
 type Empty = struct{}
 
 type Set[T comparable] struct {
@@ -46,24 +48,20 @@ func (s Set[T]) Has(elem T) (ok bool) {
 	return
 }
 
-func (s Set[T]) Range(yield func(T) bool) {
+func (s Set[T]) Range(yield Yield[T]) {
 	if s.data == nil {
 		return
 	}
-	for key := range s.data {
-		if !yield(key) {
-			return
-		}
-	}
+	maps.Keys(s.data)(yield)
 }
 
 func (s Set[T]) Slice() []T {
 	if s.data == nil {
 		return nil
 	}
-	slice := make([]T, 0, s.Len())
-	for elem := range s.data {
-		slice = append(slice, elem)
-	}
-	return slice
+	return SliceCollect(s.Range, len(s.data))
+}
+
+func (s Set[T]) Clone() Set[T] {
+	return Set[T]{maps.Clone(s.data)}
 }

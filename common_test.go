@@ -3,11 +3,13 @@ package common
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strconv"
 	"testing"
 	"time"
@@ -311,4 +313,12 @@ func BenchmarkGenericsIsZero(b *testing.B) {
 	for range b.N {
 		IsZero(t)
 	}
+}
+
+func TestSeq2(t *testing.T) {
+	keys := slices.Collect(Seq2K(maps.All(map[string]int{
+		"1": 2,
+		"3": 4,
+	})))
+	fmt.Println(keys)
 }

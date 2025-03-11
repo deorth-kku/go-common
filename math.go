@@ -13,7 +13,7 @@ type SignedInt interface {
 }
 
 type UnsignedInt interface {
-	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
 }
 
 type AnyInt interface {
@@ -22,6 +22,13 @@ type AnyInt interface {
 
 type Number interface {
 	AnyInt | Float
+}
+
+func Abs[T SignedInt | Float](i T) T {
+	if i >= 0 {
+		return i
+	}
+	return -i
 }
 
 func Parse[T Number](s string, base int) (T, error) {
@@ -66,11 +73,11 @@ func MaxInt[T AnyInt]() (t T) {
 	return ^t // unsigned
 }
 
-func Roll(n int) int {
+func Roll[T AnyInt](n T) T {
 	if n < 1 {
 		return n
 	}
-	return rand.IntN(n)
+	return rand.N(n)
 }
 
 const (
@@ -126,6 +133,6 @@ func IsInf[F Float](f F, sign int) bool {
 	case 8:
 		return math.IsInf(float64(f), sign)
 	default:
-		panic("nope")
+		panic("unexpected float size " + strconv.Itoa(int(unsafe.Sizeof(F(0)))))
 	}
 }

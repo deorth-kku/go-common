@@ -48,7 +48,6 @@ func (lg *Logger) Reload(f io.Writer, lv *slog.LevelVar, format LogFormat, opts 
 	}
 	lg.f = f
 	lg.clonecount = new(atomic.Int32)
-	return
 }
 
 func (lg *Logger) SetLevel(l slog.Leveler) {

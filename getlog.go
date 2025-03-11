@@ -1,4 +1,3 @@
-//go:generate stringer -type=LogFormat -linecomment
 package common
 
 import (
@@ -11,6 +10,7 @@ import (
 	"log/slog"
 )
 
+//go:generate stringer -type=LogFormat -linecomment  --trimprefix formatEnd
 type LogFormat uint8
 
 func (lf *LogFormat) UnmarshalJSON(data []byte) (err error) {
@@ -58,7 +58,7 @@ const (
 
 func GetLogger(file io.Writer, lv slog.Leveler, format LogFormat, opts ...SlogOption) (logger *slog.Logger, err error) {
 	handler, err := GetHandler(file, lv, format, opts...)
-	return slog.New(handler), nil
+	return slog.New(handler), err
 }
 
 func GetHandler(file io.Writer, lv slog.Leveler, format LogFormat, opts ...SlogOption) (handler slog.Handler, err error) {

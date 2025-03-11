@@ -1,7 +1,6 @@
 package common
 
 import (
-	"iter"
 	"maps"
 	"slices"
 )
@@ -50,8 +49,8 @@ func MapAssert[K comparable, V any, M ~map[K]any](input M) (output map[K]V) {
 	return
 }
 
-func MapAssertIter[K comparable, V any, M ~map[K]any](input M) iter.Seq2[K, V] {
-	return func(yield func(K, V) bool) {
+func MapAssertIter[K comparable, V any, M ~map[K]any](input M) Seq2[K, V] {
+	return func(yield Yield2[K, V]) {
 		for k, v := range input {
 			if !yield(k, v.(V)) {
 				return
@@ -68,8 +67,8 @@ func MapAny[K comparable, T any, M ~map[K]T](input M) (output map[K]any) {
 	return
 }
 
-func MapAnyIter[K comparable, T any, M ~map[K]T](input M) iter.Seq2[K, any] {
-	return func(yield func(K, any) bool) {
+func MapAnyIter[K comparable, T any, M ~map[K]T](input M) Seq2[K, any] {
+	return func(yield Yield2[K, any]) {
 		for k, v := range input {
 			if !yield(k, v) {
 				return
@@ -78,7 +77,7 @@ func MapAnyIter[K comparable, T any, M ~map[K]T](input M) iter.Seq2[K, any] {
 	}
 }
 
-func MapCollect[K comparable, V comparable](it iter.Seq2[K, V], hint int) (m map[K]V) {
+func MapCollect[K comparable, V any](it Seq2[K, V], hint int) (m map[K]V) {
 	m = make(map[K]V, hint)
 	for k, v := range it {
 		m[k] = v

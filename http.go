@@ -42,29 +42,29 @@ func FileWithMode(str string) (file string, fm os.FileMode, found bool, err erro
 	return
 }
 
-func ParseListen(listen string) (lis net.Listener, err error) {
+func ParseListen(listen string) (net.Listener, error) {
 	if filepath.IsAbs(listen) {
 		f, m, found, err := FileWithMode(listen)
 		if err != nil {
 			return nil, err
 		}
 		addr := &net.UnixAddr{Name: f, Net: "unix"}
-		lis, err = net.ListenUnix("unix", addr)
+		lis, err := net.ListenUnix("unix", addr)
 		if err != nil {
 			return nil, err
 		}
 		if found {
 			err = os.Chmod(f, m)
 		}
+		return lis, err
 	} else {
 		var addr *net.TCPAddr
-		addr, err = net.ResolveTCPAddr("tcp", listen)
+		addr, err := net.ResolveTCPAddr("tcp", listen)
 		if err != nil {
-			return
+			return nil, err
 		}
-		lis, err = net.ListenTCP("tcp", addr)
+		return net.ListenTCP("tcp", addr)
 	}
-	return
 }
 
 func (se *HttpServer) ListenAndServe(listen string) error {
