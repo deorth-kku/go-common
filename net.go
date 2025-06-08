@@ -2,6 +2,7 @@ package common
 
 import (
 	"net"
+	"net/netip"
 	"strconv"
 )
 
@@ -17,5 +18,9 @@ func ShortIP(ip net.IP) net.IP {
 }
 
 func ParseIP(ip string) net.IP {
-	return ShortIP(net.ParseIP(ip))
+	addr, err := netip.ParseAddr(ip)
+	if err != nil {
+		return nil
+	}
+	return addr.AsSlice()
 }
