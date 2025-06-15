@@ -17,6 +17,13 @@ func ShortIP(ip net.IP) net.IP {
 	return ip
 }
 
+func AddrFromSlice(ip []byte) netip.Addr {
+	if ip4 := net.IP(ip).To4(); ip4 != nil {
+		return netip.AddrFrom4([4]byte(ip4))
+	}
+	return netip.AddrFrom16([16]byte(net.IP(ip).To16()))
+}
+
 func ParseIP(ip string) net.IP {
 	addr, err := netip.ParseAddr(ip)
 	if err != nil {
