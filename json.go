@@ -39,7 +39,8 @@ type JsonFloat32[T NullTo] float32
 func (f *JsonFloat32[T]) UnmarshalJSON(data []byte) error {
 	var t T
 	v := float32(t.NullValue())
-	if err := json.Unmarshal(data, &v); err != nil {
+	if string(data) == "null" {
+	} else if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
 	*f = JsonFloat32[T](v)
@@ -86,7 +87,8 @@ type JsonFloat64[T NullTo] float64
 func (f *JsonFloat64[T]) UnmarshalJSON(data []byte) error {
 	var t T
 	v := t.NullValue()
-	if err := json.Unmarshal(data, &v); err != nil {
+	if string(data) == "null" {
+	} else if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
 	*f = JsonFloat64[T](v)
@@ -126,4 +128,49 @@ func (f *JsonFloat64[T]) Scan(value any) error {
 		return fmt.Errorf("unsupported value: %v", value)
 	}
 	return nil
+}
+
+type Nullable[T any] struct {
+	V     T
+	Valid bool
+}
+
+func (nt Nullable[T]) MarshalJSON() ([]byte, error) {
+	if !nt.Valid {
+		return []byte("null"), nil
+	}
+	return json.Marshal(nt.V)
+}
+
+func (nt *Nullable[T]) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		nt.Valid = false
+		return nil
+	}
+	nt.Valid = true
+	return json.Unmarshal(data, &nt.V)
+}
+
+func (nt Nullable[T]) Value() (driver.Value, error) {
+	if nt.Valid {
+		return nt.V, nil
+	}
+	return nil, nil
+}
+
+func (nt *Nullable[T]) Scan(value any) error {
+	switch v := value.(type) {
+	case nil:
+		return nil
+	case T:
+		nt.V = v
+		nt.Valid = true
+	default:
+		return fmt.Errorf("unsupported value: %v", value)
+	}
+	return nil
+}
+
+func NewNullable[T any](v T) Nullable[T] {
+	return Nullable[T]{V: v, Valid: true}
 }
