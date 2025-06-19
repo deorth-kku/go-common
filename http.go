@@ -43,7 +43,10 @@ func FileWithMode(str string) (file string, fm os.FileMode, found bool, err erro
 }
 
 func ParseListen(listen string) (net.Listener, error) {
-	if filepath.IsAbs(listen) {
+	if strings.HasPrefix(listen, "@") {
+		// Abstract unix socket (Linux only)
+		return net.ListenUnix("unix", &net.UnixAddr{Name: "\x00" + listen[1:], Net: "unix"})
+	} else if filepath.IsAbs(listen) {
 		f, m, found, err := FileWithMode(listen)
 		if err != nil {
 			return nil, err

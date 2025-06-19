@@ -21,6 +21,11 @@ func TestHttp(t *testing.T) {
 	server.ListenAndServe("/tmp/123.sock,0666")
 }
 
+func TestAbstrace(t *testing.T) {
+	server := NewHttpServer()
+	server.ListenAndServe("@123.sock")
+}
+
 func TestCutSlice(t *testing.T) {
 	longslice := make([]int, 65535)
 	for i := range longslice {
