@@ -37,14 +37,13 @@ type NullTo interface {
 type JsonFloat32[T NullTo] float32
 
 func (f *JsonFloat32[T]) UnmarshalJSON(data []byte) error {
-	var t T
-	v := float32(t.NullValue())
 	if string(data) == "null" {
-	} else if err := json.Unmarshal(data, &v); err != nil {
-		return err
+		var t T
+		*f = JsonFloat32[T](t.NullValue())
+		return nil
+	} else {
+		return json.Unmarshal(data, (*float32)(f))
 	}
-	*f = JsonFloat32[T](v)
-	return nil
 }
 
 func (f JsonFloat32[T]) MarshalJSON() ([]byte, error) {
@@ -85,14 +84,13 @@ func (f *JsonFloat32[T]) Scan(value any) error {
 type JsonFloat64[T NullTo] float64
 
 func (f *JsonFloat64[T]) UnmarshalJSON(data []byte) error {
-	var t T
-	v := t.NullValue()
 	if string(data) == "null" {
-	} else if err := json.Unmarshal(data, &v); err != nil {
-		return err
+		var t T
+		*f = JsonFloat64[T](t.NullValue())
+		return nil
+	} else {
+		return json.Unmarshal(data, (*float64)(f))
 	}
-	*f = JsonFloat64[T](v)
-	return nil
 }
 
 func (f JsonFloat64[T]) MarshalJSON() ([]byte, error) {

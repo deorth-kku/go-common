@@ -21,4 +21,11 @@ func TestFloat(t *testing.T) {
 		t.Error("not positive infinity")
 		return
 	}
+	if err := json.Unmarshal([]byte("3"), &f2); err != nil {
+		t.Error(err)
+		return
+	}
+	if f2 != 3 {
+		t.Error("wrong number")
+	}
 }
