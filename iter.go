@@ -91,9 +91,13 @@ func EmptyRange2[K any, V any](Yield2[K, V]) {}
 
 func SafeRange[T any](fs ...Seq[T]) Seq[T] {
 	return func(yield Yield[T]) {
-		for _, f := range fs {
+		for i, f := range fs {
 			if f == nil {
 				continue
+			}
+			if i == len(fs)-1 {
+				f(yield)
+				return
 			}
 			for v := range f {
 				if !yield(v) {
@@ -106,9 +110,13 @@ func SafeRange[T any](fs ...Seq[T]) Seq[T] {
 
 func SafeRange2[K any, V any](fs ...Seq2[K, V]) Seq2[K, V] {
 	return func(yield Yield2[K, V]) {
-		for _, f := range fs {
+		for i, f := range fs {
 			if f == nil {
 				continue
+			}
+			if i == len(fs)-1 {
+				f(yield)
+				return
 			}
 			for k, v := range f {
 				if !yield(k, v) {
@@ -141,6 +149,27 @@ func Seq2V[K any, V any](it Seq2[K, V]) Seq[V] {
 	return func(yield Yield[V]) {
 		it(func(_ K, v V) bool {
 			return yield(v)
+		})
+	}
+}
+
+func Filter[T any](seq Seq[T], filter func(T) bool) Seq[T] {
+	return func(yield Yield[T]) {
+		seq(func(v T) bool {
+			if filter(v) {
+				return yield(v)
+			}
+			return true
+		})
+	}
+}
+func Filter2[K any, V any](seq Seq2[K, V], filter func(K, V) bool) Seq2[K, V] {
+	return func(yield Yield2[K, V]) {
+		seq(func(k K, v V) bool {
+			if filter(k, v) {
+				return yield(k, v)
+			}
+			return true
 		})
 	}
 }

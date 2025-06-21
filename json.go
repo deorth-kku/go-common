@@ -36,6 +36,11 @@ type NullTo interface {
 
 type JsonFloat32[T NullTo] float32
 
+func (f JsonFloat32[T]) IsZero() bool {
+	var t T
+	return f == JsonFloat32[T](t.NullValue())
+}
+
 func (f *JsonFloat32[T]) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		var t T
@@ -82,6 +87,11 @@ func (f *JsonFloat32[T]) Scan(value any) error {
 }
 
 type JsonFloat64[T NullTo] float64
+
+func (f JsonFloat64[T]) IsZero() bool {
+	var t T
+	return f == JsonFloat64[T](t.NullValue())
+}
 
 func (f *JsonFloat64[T]) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
