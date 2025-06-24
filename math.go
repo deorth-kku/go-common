@@ -136,3 +136,21 @@ func IsInf[F Float](f F, sign int) bool {
 		panic("unexpected float size " + strconv.Itoa(int(unsafe.Sizeof(F(0)))))
 	}
 }
+
+func Sign[T Number](i T) int {
+	switch {
+	case i == 0:
+		return 0
+	case i > 0:
+		return 1
+	default:
+		return -1
+	}
+}
+
+func BoolToNumber[T Number](b bool) T {
+	if b {
+		return 1
+	}
+	return 0
+}

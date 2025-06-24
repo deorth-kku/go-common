@@ -213,6 +213,8 @@ func Iter2Group(it Seq2[string, any]) slog.Value {
 			values = append(values, slog.Any(k, Iter2Group(tv)))
 		case iter.Seq2[string, any]:
 			values = append(values, slog.Any(k, Iter2Group(tv)))
+		case Ranger2[string, any]:
+			values = append(values, slog.Any(k, Iter2Group(tv.Range)))
 		default:
 			values = append(values, slog.Any(k, v))
 		}
