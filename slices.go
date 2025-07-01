@@ -61,6 +61,10 @@ func SliceRandom[T any, S ~[]T](in S) Seq2[int, T] {
 	}
 }
 
+func RandElem[T any, S ~[]T](in S) T {
+	return in[rand.IntN(len(in))]
+}
+
 func SliceShuffle[T any, S ~[]T](in S) {
 	rand.Shuffle(len(in), func(i, j int) {
 		in[i], in[j] = in[j], in[i]

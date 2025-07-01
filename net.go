@@ -17,16 +17,12 @@ func ShortIP(ip net.IP) net.IP {
 	return ip
 }
 
+func Drop1[T, U any](t T, _ U) T {
+	return t
+}
+
 func AddrFromSlice(ip []byte) netip.Addr {
-	ip = ShortIP(ip)
-	switch len(ip) {
-	case net.IPv4len:
-		return netip.AddrFrom4([4]byte(ip))
-	case net.IPv6len:
-		return netip.AddrFrom16([16]byte(ip))
-	default:
-		return netip.Addr{}
-	}
+	return Drop1(netip.AddrFromSlice(ip))
 }
 
 func ParseIP(ip string) net.IP {

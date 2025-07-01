@@ -144,6 +144,21 @@ type Nullable[T any] struct {
 	Valid bool
 }
 
+func (n Nullable[T]) IsZero() bool {
+	return !n.Valid
+}
+
+func (old Nullable[T]) Merge(new Nullable[T]) Nullable[T] {
+	switch {
+	case new.Valid:
+		return new
+	case old.Valid:
+		return old
+	default:
+		return new
+	}
+}
+
 func (nt Nullable[T]) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return []byte("null"), nil
