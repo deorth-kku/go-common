@@ -2,6 +2,7 @@ package common
 
 import (
 	"database/sql/driver"
+	"encoding"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -181,4 +182,59 @@ func (nt *Nullable[T]) Scan(value any) error {
 
 func NewNullable[T any](v T) Nullable[T] {
 	return Nullable[T]{V: v, Valid: true}
+}
+
+type SqlString[T encoding.TextMarshaler] struct {
+	Raw T
+}
+
+func (f SqlString[T]) Value() (driver.Value, error) {
+	return f.Raw.MarshalText()
+}
+
+func unmarshalText[T any](f *T, text []byte) error {
+	unmalshaler, ok := any(f).(encoding.TextUnmarshaler)
+	if !ok {
+		return fmt.Errorf("unsupported value type: %T", *f)
+	}
+	return unmalshaler.UnmarshalText(text)
+}
+
+func (f *SqlString[T]) Scan(value any) error {
+	switch v := value.(type) {
+	case []byte:
+		return unmarshalText(&f.Raw, v)
+	case string:
+		return unmarshalText(&f.Raw, []byte(v))
+	default:
+		return fmt.Errorf("unsupported value: %v", value)
+	}
+}
+
+type SqlNullString[T encoding.TextMarshaler] struct {
+	Raw   T
+	Valid bool
+}
+
+func (f SqlNullString[T]) Value() (driver.Value, error) {
+	if !f.Valid {
+		return nil, nil
+	}
+	return f.Raw.MarshalText()
+}
+
+func (f *SqlNullString[T]) Scan(value any) error {
+	switch v := value.(type) {
+	case nil:
+		f.Valid = false
+		return nil
+	case []byte:
+		f.Valid = true
+		return unmarshalText(&f.Raw, v)
+	case string:
+		f.Valid = true
+		return unmarshalText(&f.Raw, []byte(v))
+	default:
+		return fmt.Errorf("unsupported value: %v", value)
+	}
 }

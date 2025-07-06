@@ -2,6 +2,8 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
 	"testing"
 )
 
@@ -28,4 +30,13 @@ func TestFloat(t *testing.T) {
 	if f2 != 3 {
 		t.Error("wrong number")
 	}
+}
+
+func TestSqlString(t *testing.T) {
+	var n SqlString[net.IP]
+	err := n.Scan("1.1.1.1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(n.Raw)
 }

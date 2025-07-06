@@ -1,6 +1,7 @@
 package common
 
 import (
+	"cmp"
 	"maps"
 	"slices"
 )
@@ -74,7 +75,7 @@ func (ps PairSlice[K, V]) Backward(yield Yield2[K, V]) {
 	})
 }
 
-func (ps PairSlice[K, V]) Search(key K, equal func(a, b K) bool) (V, bool) {
+func (ps PairSlice[K, V]) search(key K, equal func(a, b K) bool) (V, bool) {
 	for _, line := range ps {
 		if equal(line.Key, key) {
 			return line.Value, true
@@ -85,11 +86,182 @@ func (ps PairSlice[K, V]) Search(key K, equal func(a, b K) bool) (V, bool) {
 }
 
 func Search[K comparable, V any](ps PairSlice[K, V], key K) (V, bool) {
-	return ps.Search(key, Equal)
+	return ps.search(key, Equal)
 }
 
 func SearchEqual[K CanEqual[K], V any](ps PairSlice[K, V], key K) (V, bool) {
-	return ps.Search(key, EqualT)
+	return ps.search(key, EqualT)
+}
+
+func SearchT[K CanCompare[K], V any](ps PairSlice[K, V], key K) (V, bool) {
+	return ps.search(key, func(a, b K) bool {
+		return a.Compare(b) == 0
+	})
+}
+
+func Sort[K cmp.Ordered, V any](ps PairSlice[K, V]) {
+	slices.SortFunc(ps, func(a, b Pair[K, V]) int {
+		return cmp.Compare(a.Key, b.Key)
+	})
+}
+
+func SortT[K CanCompare[K], V any](ps PairSlice[K, V]) {
+	slices.SortFunc(ps, func(a, b Pair[K, V]) int {
+		return CompareT(a.Key, b.Key)
+	})
+}
+
+type (
+	cmpFunc[K any]     = func(x K, y K) int
+	computeFunc[V any] = func(oldValue V, loaded bool) (newValue V, delete bool)
+)
+
+func (ps PairSlice[K, V]) insert(key K, value V, cmp cmpFunc[K]) PairSlice[K, V] {
+	id, ok := slices.BinarySearchFunc(ps, NewPair(key, value), func(a, b Pair[K, V]) int {
+		return cmp(a.Key, b.Key)
+	})
+	if ok {
+		ps[id].Value = value
+	} else {
+		ps = slices.Insert(ps, id, NewPair(key, value))
+	}
+	return ps
+}
+
+func Insert[K cmp.Ordered, V any](ps PairSlice[K, V], key K, value V) PairSlice[K, V] {
+	return ps.insert(key, value, cmp.Compare)
+}
+
+func InsertT[K CanCompare[K], V any](ps PairSlice[K, V], key K, value V) PairSlice[K, V] {
+	return ps.insert(key, value, CompareT)
+}
+
+func (ps PairSlice[K, V]) compute(key K, valueFn computeFunc[V], cmp cmpFunc[K]) (PairSlice[K, V], V, bool) {
+	p := Pair[K, V]{Key: key}
+	id, ok := slices.BinarySearchFunc(ps, p, func(a, b Pair[K, V]) int {
+		return cmp(a.Key, b.Key)
+	})
+	if ok {
+		p.Value, ok = valueFn(ps[id].Value, ok)
+		if ok {
+			ps = slices.Delete(ps, id, id+1)
+		} else {
+			ps[id].Value = p.Value
+		}
+	} else {
+		p.Value, ok = valueFn(p.Value, ok)
+		if !ok {
+			ps = slices.Insert(ps, id, p)
+		}
+	}
+	return ps, p.Value, !ok
+}
+
+func Compute[K cmp.Ordered, V any](ps PairSlice[K, V], key K, valueFn computeFunc[V]) (PairSlice[K, V], V, bool) {
+	return ps.compute(key, valueFn, cmp.Compare)
+}
+
+func ComputeT[K CanCompare[K], V any](ps PairSlice[K, V], key K, valueFn computeFunc[V]) (PairSlice[K, V], V, bool) {
+	return ps.compute(key, valueFn, CompareT)
+}
+
+func (ps PairSlice[K, V]) binarySearch(key K, cmp cmpFunc[K]) (V, bool) {
+	p := Pair[K, V]{Key: key}
+	id, ok := slices.BinarySearchFunc(ps, p, func(a, b Pair[K, V]) int {
+		return cmp(a.Key, b.Key)
+	})
+	if ok {
+		return ps[id].Value, true
+	}
+	return p.Value, false
+}
+
+func BinarySearch[K cmp.Ordered, V any](ps PairSlice[K, V], key K) (V, bool) {
+	return ps.binarySearch(key, cmp.Compare)
+}
+
+func BinarySearchT[K CanCompare[K], V any](ps PairSlice[K, V], key K) (V, bool) {
+	return ps.binarySearch(key, CompareT)
+}
+
+func (ps PairSlice[K, V]) delete(key K, cmp cmpFunc[K]) PairSlice[K, V] {
+	id, ok := slices.BinarySearchFunc(ps, Pair[K, V]{Key: key}, func(a, b Pair[K, V]) int {
+		return cmp(a.Key, b.Key)
+	})
+	if ok {
+		ps = slices.Delete(ps, id, id+1)
+	}
+	return ps
+}
+
+func Delete[K cmp.Ordered, V any](ps PairSlice[K, V], key K) PairSlice[K, V] {
+	return ps.delete(key, cmp.Compare)
+}
+
+func DeleteT[K CanCompare[K], V any](ps PairSlice[K, V], key K) PairSlice[K, V] {
+	return ps.delete(key, CompareT)
+}
+
+type psdata[K any, V any] = PairSlice[K, V]
+
+type BSMap[K cmp.Ordered, V any] struct {
+	psdata[K, V]
+}
+
+func NewBSMap[K cmp.Ordered, V any](from ...Pair[K, V]) *BSMap[K, V] {
+	Sort(from)
+	return &BSMap[K, V]{from}
+}
+
+func (bs BSMap[K, V]) Load(key K) (V, bool) {
+	return bs.binarySearch(key, cmp.Compare)
+}
+
+func (bs *BSMap[K, V]) Store(key K, value V) {
+	bs.psdata = bs.insert(key, value, cmp.Compare)
+}
+
+func (bs *BSMap[K, V]) Delete(key K) {
+	bs.psdata = bs.delete(key, cmp.Compare)
+}
+
+func (bs *BSMap[K, V]) Compute(key K, valueFn computeFunc[V]) (actual V, ok bool) {
+	bs.psdata, actual, ok = bs.compute(key, valueFn, cmp.Compare)
+	return
+}
+
+func (bs BSMap[K, V]) Size() int {
+	return len(bs.psdata)
+}
+
+func NewBSMapT[K CanCompare[K], V any](from ...Pair[K, V]) *BSMapT[K, V] {
+	SortT(from)
+	return &BSMapT[K, V]{from}
+}
+
+type BSMapT[K CanCompare[K], V any] struct {
+	psdata[K, V]
+}
+
+func (bs BSMapT[K, V]) Load(key K) (V, bool) {
+	return bs.binarySearch(key, CompareT)
+}
+
+func (bs *BSMapT[K, V]) Store(key K, value V) {
+	bs.psdata = bs.insert(key, value, CompareT)
+}
+
+func (bs *BSMapT[K, V]) Delete(key K) {
+	bs.psdata = bs.delete(key, CompareT)
+}
+
+func (bs *BSMapT[K, V]) Compute(key K, valueFn computeFunc[V]) (actual V, ok bool) {
+	bs.psdata, actual, ok = bs.compute(key, valueFn, CompareT)
+	return
+}
+
+func (bs BSMapT[K, V]) Size() int {
+	return len(bs.psdata)
 }
 
 func EmptyRange[T any](Yield[T])             {}
