@@ -1,7 +1,18 @@
 package common
 
+import "unsafe"
+
 func IsZero[T comparable](a T) bool {
 	return a == *new(T)
+}
+
+func IsZeroSlow[T any](a T) bool {
+	for _, b := range unsafe.Slice((*byte)(unsafe.Pointer(&a)), unsafe.Sizeof(a)) {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 func Equal[T comparable](a, b T) bool {

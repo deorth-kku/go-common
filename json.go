@@ -37,6 +37,11 @@ type NullTo interface {
 
 type JsonFloat32[T NullTo] float32
 
+func (f *JsonFloat32[T]) Init() {
+	var t T
+	*f = JsonFloat32[T](t.NullValue())
+}
+
 func (f JsonFloat32[T]) IsZero() bool {
 	var t T
 	return f == JsonFloat32[T](t.NullValue())
@@ -44,8 +49,7 @@ func (f JsonFloat32[T]) IsZero() bool {
 
 func (f *JsonFloat32[T]) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
-		var t T
-		*f = JsonFloat32[T](t.NullValue())
+		f.Init()
 		return nil
 	} else {
 		return json.Unmarshal(data, (*float32)(f))
@@ -75,8 +79,7 @@ func (f JsonFloat32[T]) Value() (driver.Value, error) {
 func (f *JsonFloat32[T]) Scan(value any) error {
 	switch v := value.(type) {
 	case nil:
-		var t T
-		*f = JsonFloat32[T](t.NullValue())
+		f.Init()
 	case float32:
 		*f = JsonFloat32[T](v)
 	case float64:
@@ -89,6 +92,11 @@ func (f *JsonFloat32[T]) Scan(value any) error {
 
 type JsonFloat64[T NullTo] float64
 
+func (f *JsonFloat64[T]) Init() {
+	var t T
+	*f = JsonFloat64[T](t.NullValue())
+}
+
 func (f JsonFloat64[T]) IsZero() bool {
 	var t T
 	return f == JsonFloat64[T](t.NullValue())
@@ -96,8 +104,7 @@ func (f JsonFloat64[T]) IsZero() bool {
 
 func (f *JsonFloat64[T]) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
-		var t T
-		*f = JsonFloat64[T](t.NullValue())
+		f.Init()
 		return nil
 	} else {
 		return json.Unmarshal(data, (*float64)(f))
@@ -127,8 +134,7 @@ func (f JsonFloat64[T]) Value() (driver.Value, error) {
 func (f *JsonFloat64[T]) Scan(value any) error {
 	switch v := value.(type) {
 	case nil:
-		var t T
-		*f = JsonFloat64[T](t.NullValue())
+		f.Init()
 	case float32:
 		*f = JsonFloat64[T](v)
 	case float64:
@@ -157,6 +163,13 @@ func (old Nullable[T]) Merge(new Nullable[T]) Nullable[T] {
 	default:
 		return new
 	}
+}
+
+func (n Nullable[T]) InvalidAsZero() T {
+	if n.Valid {
+		return n.V
+	}
+	return *new(T)
 }
 
 func (nt Nullable[T]) MarshalJSON() ([]byte, error) {

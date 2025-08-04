@@ -31,9 +31,15 @@ func Abs[T SignedInt | Float](i T) T {
 	return -i
 }
 
-func Parse[T Number](s string, base int) (T, error) {
+const (
+	typeFloat = iota
+	typeSigned
+	typeUnsigned
+)
+
+func getTinfo[T Number]() (int, int) {
 	var t T
-	size := int(unsafe.Sizeof(t))
+	size := unsafe.Sizeof(t)
 	switch size {
 	case 1:
 		*(*uint8)(unsafe.Pointer(&t)) = math.MaxUint8
@@ -44,18 +50,46 @@ func Parse[T Number](s string, base int) (T, error) {
 	case 8:
 		*(*uint64)(unsafe.Pointer(&t)) = math.MaxUint64
 	default:
-		return 0, ErrorString("unexpect type " + reflect.TypeOf(t).Name())
+		panic("unexpect type " + reflect.TypeOf(t).Name())
 	}
 	if t != t {
-		f64, err := strconv.ParseFloat(s, size*8)
-		return T(f64), err
+		return typeFloat, int(size * 8)
 	}
 	if t < 0 {
-		i64, err := strconv.ParseInt(s, base, size*8)
-		return T(i64), err
+		return typeSigned, int(size * 8)
 	}
-	u64, err := strconv.ParseUint(s, base, size*8)
-	return T(u64), err
+	return typeUnsigned, int(size * 8)
+}
+
+func Parse[T Number](s string, base int) (T, error) {
+	t, size := getTinfo[T]()
+	switch t {
+	case typeFloat:
+		f64, err := strconv.ParseFloat(s, size)
+		return T(f64), err
+	case typeSigned:
+		i64, err := strconv.ParseInt(s, base, size)
+		return T(i64), err
+	case typeUnsigned:
+		u64, err := strconv.ParseUint(s, base, size)
+		return T(u64), err
+	default:
+		panic("unexpect type " + reflect.TypeFor[T]().Name())
+	}
+}
+
+func Format[T Number](n T, base int) string {
+	t, size := getTinfo[T]()
+	switch t {
+	case typeFloat:
+		return strconv.FormatFloat(float64(n), 'f', -1, size)
+	case typeSigned:
+		return strconv.FormatInt(int64(n), 10)
+	case typeUnsigned:
+		return strconv.FormatUint(uint64(n), 10)
+	default:
+		panic("unexpect type " + reflect.TypeFor[T]().Name())
+	}
 }
 
 func DevidedCeil[T AnyInt](a, b T) T {

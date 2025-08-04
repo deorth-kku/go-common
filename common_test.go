@@ -454,3 +454,17 @@ func BenchmarkParse(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkIsZero(b *testing.B) {
+	var a time.Time
+	for range b.N {
+		IsZero(a)
+	}
+}
+
+func BenchmarkIsZeroSlow(b *testing.B) {
+	a := time.Now()
+	for range b.N {
+		IsZeroSlow(a)
+	}
+}
