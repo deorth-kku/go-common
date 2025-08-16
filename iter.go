@@ -267,7 +267,7 @@ func (bs BSMapT[K, V]) Size() int {
 func EmptyRange[T any](Yield[T])             {}
 func EmptyRange2[K any, V any](Yield2[K, V]) {}
 
-func SafeRange[T any](fs ...Seq[T]) Seq[T] {
+func SafeRange[IT ~Seq[T], T any](fs ...IT) IT {
 	return func(yield Yield[T]) {
 		for i, f := range fs {
 			if f == nil {
@@ -286,7 +286,7 @@ func SafeRange[T any](fs ...Seq[T]) Seq[T] {
 	}
 }
 
-func SafeRange2[K any, V any](fs ...Seq2[K, V]) Seq2[K, V] {
+func SafeRange2[IT ~Seq2[K, V], K, V any](fs ...IT) IT {
 	return func(yield Yield2[K, V]) {
 		for i, f := range fs {
 			if f == nil {
@@ -331,7 +331,7 @@ func Seq2V[K any, V any](it Seq2[K, V]) Seq[V] {
 	}
 }
 
-func Filter[T any](seq Seq[T], filter func(T) bool) Seq[T] {
+func Filter[T any](seq Seq[T], filter Yield[T]) Seq[T] {
 	return func(yield Yield[T]) {
 		seq(func(v T) bool {
 			if filter(v) {
@@ -341,7 +341,7 @@ func Filter[T any](seq Seq[T], filter func(T) bool) Seq[T] {
 		})
 	}
 }
-func Filter2[K any, V any](seq Seq2[K, V], filter func(K, V) bool) Seq2[K, V] {
+func Filter2[K any, V any](seq Seq2[K, V], filter Yield2[K, V]) Seq2[K, V] {
 	return func(yield Yield2[K, V]) {
 		seq(func(k K, v V) bool {
 			if filter(k, v) {

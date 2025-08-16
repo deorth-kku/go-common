@@ -13,6 +13,13 @@ func Must[T any](arg T, err error) T {
 	return arg
 }
 
+func MustOk[T any](arg T, ok bool) T {
+	if !ok {
+		panic("function call not ok")
+	}
+	return arg
+}
+
 func Must2[T any, U any](arg1 T, arg2 U, err error) (T, U) {
 	if err != nil {
 		panic(err)
