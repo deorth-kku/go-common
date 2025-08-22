@@ -305,7 +305,7 @@ func SafeRange2[IT ~Seq2[K, V], K, V any](fs ...IT) IT {
 	}
 }
 
-type PairChan[K any, V any] chan Pair[K, V]
+type PairChan[K any, V any] <-chan Pair[K, V]
 
 func (pc PairChan[K, V]) Range(yield Yield2[K, V]) {
 	for pair := range pc {
