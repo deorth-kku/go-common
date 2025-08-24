@@ -11,6 +11,10 @@ import (
 	"strconv"
 )
 
+func SetLogRaw(f io.Writer, lv slog.Level, format LogFormat, opts ...SlogOption) {
+	slog.SetDefault(GetLogger(f, lv, format.NewHandler, opts...))
+}
+
 func SetLog(file string, level string, format string, opts ...SlogOption) (err error) {
 	var f *os.File
 	if file == "" {
@@ -30,11 +34,7 @@ func SetLog(file string, level string, format string, opts ...SlogOption) (err e
 	if err != nil {
 		return
 	}
-	logger, err := GetLogger(f, lv, fm, opts...)
-	if err != nil {
-		return
-	}
-	slog.SetDefault(logger)
+	SetLogRaw(f, lv, fm, opts...)
 	return
 }
 

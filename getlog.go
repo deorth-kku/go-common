@@ -14,14 +14,9 @@ import (
 type LogFormat uint8
 
 func (lf *LogFormat) UnmarshalJSON(data []byte) (err error) {
-	var i uint8
-	err = json.Unmarshal(data, &i)
+	err = json.Unmarshal(data, (*uint8)(lf))
 	if err == nil {
-		*lf = LogFormat(i)
-		if *lf >= formatEnd {
-			return fmt.Errorf("%d is not a valid log format", i)
-		}
-		return
+		return lf.Validate()
 	}
 	var str string
 	err = json.Unmarshal(data, &str)
@@ -45,7 +40,7 @@ func ParseLogFormat(str string) (LogFormat, error) {
 	case JsonFormat.String():
 		return JsonFormat, nil
 	default:
-		return 0, fmt.Errorf("%s is not a valid log format name", str)
+		return 0, fmt.Errorf("%s is not a valid LogFormat name", str)
 	}
 }
 
@@ -56,12 +51,29 @@ const (
 	formatEnd
 )
 
-func GetLogger(file io.Writer, lv slog.Leveler, format LogFormat, opts ...SlogOption) (logger *slog.Logger, err error) {
-	handler, err := GetHandler(file, lv, format, opts...)
-	return slog.New(handler), err
+func (f LogFormat) Validate() error {
+	if f >= formatEnd {
+		return fmt.Errorf("%d is not a valid LogFormat", f)
+	}
+	return nil
 }
 
-func GetHandler(file io.Writer, lv slog.Leveler, format LogFormat, opts ...SlogOption) (handler slog.Handler, err error) {
+func (f LogFormat) NewHandler(w io.Writer, opts *slog.HandlerOptions) slog.Handler {
+	switch f {
+	case DefaultFormat:
+		return NewHandler(w, opts)
+	case TextFormat:
+		return slog.NewTextHandler(w, opts)
+	case JsonFormat:
+		return slog.NewJSONHandler(w, opts)
+	default:
+		return nil
+	}
+}
+
+type LogFormatFunc[T slog.Handler] = func(w io.Writer, opts *slog.HandlerOptions) T
+
+func GetHandler[T slog.Handler](file io.Writer, lv slog.Leveler, format LogFormatFunc[T], opts ...SlogOption) slog.Handler {
 	options := &slog.HandlerOptions{
 		Level:       lv,
 		ReplaceAttr: nil,
@@ -70,15 +82,9 @@ func GetHandler(file io.Writer, lv slog.Leveler, format LogFormat, opts ...SlogO
 	for _, opt := range opts {
 		opt.SetOption(options)
 	}
-	switch format {
-	case DefaultFormat:
-		handler = NewHandler(file, options)
-	case TextFormat:
-		handler = slog.NewTextHandler(file, options)
-	case JsonFormat:
-		handler = slog.NewJSONHandler(file, options)
-	default:
-		return nil, fmt.Errorf("%d is not a valid log format", format)
-	}
-	return
+	return format(file, options)
+}
+
+func GetLogger[T slog.Handler](file io.Writer, lv slog.Leveler, format LogFormatFunc[T], opts ...SlogOption) *slog.Logger {
+	return slog.New(GetHandler(file, lv, format, opts...))
 }
