@@ -158,19 +158,27 @@ func (h *MyHandler) appendAttr(buf []byte, prefix string, a slog.Attr) []byte {
 	if a.Equal(slog.Attr{}) {
 		return buf
 	}
-	if a.Value.Kind() != slog.KindGroup {
+	switch a.Value.Kind() {
+	case slog.KindGroup:
+		if a.Key != "" {
+			prefix += a.Key + "."
+		}
+		for _, a := range a.Value.Group() {
+			buf = h.appendAttr(buf, prefix, a)
+		}
+		return buf
+	case slog.KindLogValuer:
+		a.Value = a.Value.Resolve()
+		fallthrough
+	default:
 		buf = append(buf, ' ')
 		buf = append(buf, prefix...)
 		buf = append(buf, a.Key...)
 		buf = append(buf, '=')
+		switch a.Value.Kind() {
+		case slog.KindLogValuer:
+
+		}
 		return fmt.Appendf(buf, "%v", a.Value.Any())
 	}
-	// Group
-	if a.Key != "" {
-		prefix += a.Key + "."
-	}
-	for _, a := range a.Value.Group() {
-		buf = h.appendAttr(buf, prefix, a)
-	}
-	return buf
 }

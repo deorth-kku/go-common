@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"maps"
 	"math/rand/v2"
+	"os"
 	"testing"
 )
 
@@ -112,4 +113,17 @@ func TestSlice(t *testing.T) {
 		return
 	}
 	slog.Info("test slice", "slice", sli)
+}
+
+type testvaluer struct{}
+
+func (testvaluer) LogValue() slog.Value {
+	return slog.StringValue("test")
+}
+
+var _ slog.LogValuer = testvaluer{}
+
+func TestLogValuer(t *testing.T) {
+	SetLogRaw(os.Stderr, slog.LevelDebug, DefaultFormat)
+	slog.Debug("test valuer", "test", testvaluer{})
 }
