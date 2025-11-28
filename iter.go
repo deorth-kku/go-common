@@ -210,7 +210,13 @@ type BSMap[K cmp.Ordered, V any] struct {
 
 func NewBSMap[K cmp.Ordered, V any](from ...Pair[K, V]) *BSMap[K, V] {
 	Sort(from)
-	return &BSMap[K, V]{from}
+	return &BSMap[K, V]{slices.CompactFunc(from, func(a, b Pair[K, V]) bool {
+		return a.Key == b.Key
+	})}
+}
+
+func NewBSMapSize[K cmp.Ordered, V any](l int) *BSMap[K, V] {
+	return &BSMap[K, V]{make(psdata[K, V], 0, l)}
 }
 
 func (bs BSMap[K, V]) Load(key K) (V, bool) {
@@ -230,13 +236,24 @@ func (bs *BSMap[K, V]) Compute(key K, valueFn computeFunc[V]) (actual V, ok bool
 	return
 }
 
+func (bs *BSMap[K, V]) Clear() {
+	clear(bs.psdata)
+	bs.psdata = bs.psdata[:0]
+}
+
 func (bs BSMap[K, V]) Size() int {
 	return len(bs.psdata)
 }
 
 func NewBSMapT[K CanCompare[K], V any](from ...Pair[K, V]) *BSMapT[K, V] {
 	SortT(from)
-	return &BSMapT[K, V]{from}
+	return &BSMapT[K, V]{slices.CompactFunc(from, func(a, b Pair[K, V]) bool {
+		return a.Key.Compare(b.Key) == 0
+	})}
+}
+
+func NewBSMapTSize[K CanCompare[K], V any](l int) *BSMapT[K, V] {
+	return &BSMapT[K, V]{make(psdata[K, V], 0, l)}
 }
 
 type BSMapT[K CanCompare[K], V any] struct {
@@ -258,6 +275,11 @@ func (bs *BSMapT[K, V]) Delete(key K) {
 func (bs *BSMapT[K, V]) Compute(key K, valueFn computeFunc[V]) (actual V, ok bool) {
 	bs.psdata, actual, ok = bs.compute(key, valueFn, CompareT)
 	return
+}
+
+func (bs *BSMapT[K, V]) Clear() {
+	clear(bs.psdata)
+	bs.psdata = bs.psdata[:0]
 }
 
 func (bs BSMapT[K, V]) Size() int {

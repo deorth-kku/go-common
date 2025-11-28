@@ -468,3 +468,10 @@ func BenchmarkIsZeroSlow(b *testing.B) {
 		IsZeroSlow(a)
 	}
 }
+
+func TestClear(t *testing.T) {
+	m := NewBSMap[int, string]()
+	m.Store(1, "1")
+	m.Clear()
+	fmt.Print(m)
+}
