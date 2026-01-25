@@ -14,11 +14,7 @@ const (
 	ErrNotLumberjack = common.ErrorString("logger is not a lumberjack")
 )
 
-func fromlogger(logger *slog.Logger) (*AtomicHandler, error) {
-	if logger == nil {
-		return nil, ErrNilHandler
-	}
-	hdl := logger.Handler()
+func fromhandler(hdl slog.Handler) (*AtomicHandler, error) {
 	if hdl == nil {
 		return nil, ErrNilHandler
 	}
@@ -27,6 +23,13 @@ func fromlogger(logger *slog.Logger) (*AtomicHandler, error) {
 		return nil, ErrNotAtomic
 	}
 	return ah, nil
+}
+
+func fromlogger(logger *slog.Logger) (*AtomicHandler, error) {
+	if logger == nil {
+		return nil, ErrNilLogger
+	}
+	return fromhandler(logger.Handler())
 }
 
 func Clone(logger *slog.Logger) (*slog.Logger, error) {
@@ -73,4 +76,15 @@ func Rotate(logger *slog.Logger) error {
 
 func GetLogger[T slog.Handler](file io.Writer, lv slog.Leveler, format common.LogFormatFunc[T], opts ...common.SlogOption) *slog.Logger {
 	return common.GetLogger(file, lv, NewHandlerFunc(format), opts...)
+}
+
+func CloseHandler(hdl slog.Handler) {
+	at, err := fromhandler(hdl)
+	if err != nil {
+		return
+	}
+	closer, ok := shouldclose(at.f)
+	if ok {
+		closer.Close()
+	}
 }

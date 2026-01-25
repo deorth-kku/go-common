@@ -34,8 +34,17 @@ func (ah *AtomicHandler) WithGroup(name string) slog.Handler {
 	return (*(ah.hdl.Load())).WithGroup(name)
 }
 
+func shouldclose(rt io.Writer) (io.Closer, bool) {
+	switch rt {
+	case os.Stderr, os.Stdout:
+		return nil, false
+	}
+	closer, ok := rt.(io.Closer)
+	return closer, ok
+}
+
 func reload[T slog.Handler](ah *AtomicHandler, file io.Writer, lv slog.Leveler, format common.LogFormatFunc[T], opts ...common.SlogOption) {
-	if closer, ok := ah.f.(io.Closer); ok && ah.f != os.Stderr && ah.f != os.Stdout {
+	if closer, ok := shouldclose(ah.f); ok {
 		if ah.clones.Load() > 0 {
 			ah.clones.Add(-1)
 		} else {
