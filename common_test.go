@@ -13,6 +13,8 @@ import (
 	"reflect"
 	"slices"
 	"strconv"
+	"sync/atomic"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -474,4 +476,21 @@ func TestClear(t *testing.T) {
 	m.Store(1, "1")
 	m.Clear()
 	fmt.Print(m)
+}
+
+func TestSig(t *testing.T) {
+	var count atomic.Int32
+	stop := SignalsCallback(func() {
+		count.Add(1)
+	}, false, syscall.SIGALRM)
+	defer stop()
+	const tries = 3
+	for range tries {
+		syscall.Kill(os.Getpid(), syscall.SIGALRM)
+		time.Sleep(time.Millisecond)
+	}
+
+	if count.Load() != tries {
+		t.Error(fmt.Errorf("not enough tries, expected: %d, actual: %d", tries, count.Load()))
+	}
 }
