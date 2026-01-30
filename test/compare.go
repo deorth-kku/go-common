@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func Equal[T TestingCommon, C comparable](t T, a1, a2 C, customMsg ...any) {
+func Equal[C comparable, T TestingCommon](t T, a1, a2 C, customMsg ...any) {
 	if a1 == a2 {
 		return
 	}
@@ -29,7 +29,7 @@ func DeepEqual[T TestingCommon](t T, a1, a2 any, customMsg ...any) {
 	}
 }
 
-func Less[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
+func Less[O cmp.Ordered, T TestingCommon](t T, a1, a2 O, customMsg ...any) {
 	if a1 < a2 {
 		return
 	}
@@ -41,7 +41,7 @@ func Less[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
 	}
 }
 
-func Greater[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
+func Greater[O cmp.Ordered, T TestingCommon](t T, a1, a2 O, customMsg ...any) {
 	if a1 > a2 {
 		return
 	}
@@ -53,7 +53,7 @@ func Greater[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
 	}
 }
 
-func LessOrEqual[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
+func LessOrEqual[O cmp.Ordered, T TestingCommon](t T, a1, a2 O, customMsg ...any) {
 	if a1 <= a2 {
 		return
 	}
@@ -65,7 +65,7 @@ func LessOrEqual[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any
 	}
 }
 
-func GreaterOrEqual[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
+func GreaterOrEqual[O cmp.Ordered, T TestingCommon](t T, a1, a2 O, customMsg ...any) {
 	if a1 >= a2 {
 		return
 	}

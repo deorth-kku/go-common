@@ -10,9 +10,10 @@ func NoError[T TestingCommon](t T, err error, customMsg ...any) {
 	}
 	t.Helper()
 	if len(customMsg) == 0 {
-		t.Fatal(customMsg...)
-	} else {
 		t.Fatal(err)
+	} else {
+		t.Fatal(customMsg...)
+
 	}
 }
 
@@ -22,9 +23,9 @@ func IsError[T TestingCommon](t T, actual, expected error, customMsg ...any) {
 	}
 	t.Helper()
 	if len(customMsg) == 0 {
-		t.Fatal(customMsg...)
-	} else {
 		t.Fatal(actual)
+	} else {
+		t.Fatal(customMsg...)
 	}
 }
 
@@ -40,7 +41,7 @@ func Error[T TestingCommon](t T, err error, customMsg ...any) {
 	}
 }
 
-func AsErrorType[T TestingCommon, E error](t T, err error, customMsg ...any) E {
+func AsErrorType[E error, T TestingCommon](t T, err error, customMsg ...any) E {
 	var e E
 	if errors.As(err, &e) {
 		return e

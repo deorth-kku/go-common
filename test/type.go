@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-func IsType[T TestingCommon, V any](t T, arg any, customMsg ...any) V {
+func IsType[V any, T TestingCommon](t T, arg any, customMsg ...any) V {
 	v, ok := arg.(V)
 	if ok {
 		return v
