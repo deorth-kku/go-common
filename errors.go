@@ -72,6 +72,13 @@ func MergeError(msg string, errs ...error) mergeError {
 	return mergeError{msg, errs}
 }
 
+func Errors(msg string, errs ...error) error {
+	if len(errs) == 0 {
+		return nil
+	}
+	return mergeError{msg, errs}
+}
+
 type ErrorString string
 
 func (e ErrorString) Error() string {
