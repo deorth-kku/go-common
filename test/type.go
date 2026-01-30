@@ -10,6 +10,7 @@ func IsType[T any](t *testing.T, arg any, customMsg ...any) T {
 	if ok {
 		return v
 	}
+	t.Helper()
 	if len(customMsg) == 0 {
 		t.Fatalf("%v is not a %s type", arg, reflect.TypeFor[T]())
 	} else {
@@ -22,6 +23,7 @@ func IsReflectType(t *testing.T, arg any, ty reflect.Type, customMsg ...any) {
 	if reflect.TypeOf(arg) == ty {
 		return
 	}
+	t.Helper()
 	if len(customMsg) == 0 {
 		t.Fatalf("%v is not a %s type", arg, ty)
 	} else {

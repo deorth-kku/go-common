@@ -9,6 +9,7 @@ func NoError(t *testing.T, err error, customMsg ...any) {
 	if err == nil {
 		return
 	}
+	t.Helper()
 	if len(customMsg) == 0 {
 		t.Fatal(customMsg...)
 	} else {
@@ -20,6 +21,7 @@ func IsError(t *testing.T, actual, expected error, customMsg ...any) {
 	if errors.Is(actual, expected) {
 		return
 	}
+	t.Helper()
 	if len(customMsg) == 0 {
 		t.Fatal(customMsg...)
 	} else {
@@ -31,6 +33,7 @@ func Error(t *testing.T, err error, customMsg ...any) {
 	if err != nil {
 		return
 	}
+	t.Helper()
 	if len(customMsg) == 0 {
 		t.Fatal("no error when expecting an error")
 	} else {
@@ -43,6 +46,7 @@ func AsErrorType[T error](t *testing.T, err error, customMsg ...any) T {
 	if errors.As(err, &e) {
 		return e
 	}
+	t.Helper()
 	if len(customMsg) == 0 {
 		t.Fatal(err)
 	} else {
