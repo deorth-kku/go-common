@@ -2,10 +2,9 @@ package ctest
 
 import (
 	"errors"
-	"testing"
 )
 
-func NoError(t *testing.T, err error, customMsg ...any) {
+func NoError[T TestingCommon](t T, err error, customMsg ...any) {
 	if err == nil {
 		return
 	}
@@ -17,7 +16,7 @@ func NoError(t *testing.T, err error, customMsg ...any) {
 	}
 }
 
-func IsError(t *testing.T, actual, expected error, customMsg ...any) {
+func IsError[T TestingCommon](t T, actual, expected error, customMsg ...any) {
 	if errors.Is(actual, expected) {
 		return
 	}
@@ -29,7 +28,7 @@ func IsError(t *testing.T, actual, expected error, customMsg ...any) {
 	}
 }
 
-func Error(t *testing.T, err error, customMsg ...any) {
+func Error[T TestingCommon](t T, err error, customMsg ...any) {
 	if err != nil {
 		return
 	}
@@ -41,8 +40,8 @@ func Error(t *testing.T, err error, customMsg ...any) {
 	}
 }
 
-func AsErrorType[T error](t *testing.T, err error, customMsg ...any) T {
-	var e T
+func AsErrorType[T TestingCommon, E error](t T, err error, customMsg ...any) E {
+	var e E
 	if errors.As(err, &e) {
 		return e
 	}

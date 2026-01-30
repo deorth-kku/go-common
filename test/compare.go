@@ -3,10 +3,9 @@ package ctest
 import (
 	"cmp"
 	"reflect"
-	"testing"
 )
 
-func Equal[T comparable](t *testing.T, a1, a2 T, customMsg ...any) {
+func Equal[T TestingCommon, C comparable](t T, a1, a2 C, customMsg ...any) {
 	if a1 == a2 {
 		return
 	}
@@ -18,7 +17,7 @@ func Equal[T comparable](t *testing.T, a1, a2 T, customMsg ...any) {
 	}
 }
 
-func DeepEqual(t *testing.T, a1, a2 any, customMsg ...any) {
+func DeepEqual[T TestingCommon](t T, a1, a2 any, customMsg ...any) {
 	if reflect.DeepEqual(a1, a2) {
 		return
 	}
@@ -30,7 +29,7 @@ func DeepEqual(t *testing.T, a1, a2 any, customMsg ...any) {
 	}
 }
 
-func Less[T cmp.Ordered](t *testing.T, a1, a2 T, customMsg ...any) {
+func Less[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
 	if a1 < a2 {
 		return
 	}
@@ -42,7 +41,7 @@ func Less[T cmp.Ordered](t *testing.T, a1, a2 T, customMsg ...any) {
 	}
 }
 
-func Greater[T cmp.Ordered](t *testing.T, a1, a2 T, customMsg ...any) {
+func Greater[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
 	if a1 > a2 {
 		return
 	}
@@ -54,7 +53,7 @@ func Greater[T cmp.Ordered](t *testing.T, a1, a2 T, customMsg ...any) {
 	}
 }
 
-func LessOrEqual[T cmp.Ordered](t *testing.T, a1, a2 T, customMsg ...any) {
+func LessOrEqual[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
 	if a1 <= a2 {
 		return
 	}
@@ -66,7 +65,7 @@ func LessOrEqual[T cmp.Ordered](t *testing.T, a1, a2 T, customMsg ...any) {
 	}
 }
 
-func GreaterOrEqual[T cmp.Ordered](t *testing.T, a1, a2 T, customMsg ...any) {
+func GreaterOrEqual[T TestingCommon, O cmp.Ordered](t T, a1, a2 O, customMsg ...any) {
 	if a1 >= a2 {
 		return
 	}
