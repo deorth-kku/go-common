@@ -17,6 +17,18 @@ func Equal[C comparable, T TestingCommon](t T, a1, a2 C, customMsg ...any) {
 	}
 }
 
+func NotEqual[C comparable, T TestingCommon](t T, a1, a2 C, customMsg ...any) {
+	if a1 != a2 {
+		return
+	}
+	t.Helper()
+	if len(customMsg) == 0 {
+		t.Fatalf("%v is equal to %v", a1, a2)
+	} else {
+		t.Fatal(customMsg...)
+	}
+}
+
 func DeepEqual[T TestingCommon](t T, a1, a2 any, customMsg ...any) {
 	if reflect.DeepEqual(a1, a2) {
 		return
