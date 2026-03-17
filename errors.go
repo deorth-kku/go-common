@@ -1,7 +1,8 @@
 package common
 
 import (
-	"strings"
+	"errors"
+	"slices"
 )
 
 type Unwraper interface {
@@ -37,46 +38,16 @@ func Unwraps(err error) Seq[error] {
 	}
 }
 
-var _ MultiUnwraper = mergeError{}
-
-type mergeError struct {
-	msg  string
-	errs []error
-}
-
-func (m mergeError) Error() string {
-	if len(m.errs) == 0 {
-		return m.msg
-	}
-	bld := new(strings.Builder)
-	if len(m.msg) != 0 {
-		bld.WriteString(m.msg)
-		bld.WriteString(": ")
-	}
-	bld.WriteString(m.errs[0].Error())
-	for _, err := range m.errs[1:] {
-		bld.WriteString(",")
-		bld.WriteString(err.Error())
-	}
-	return bld.String()
-}
-
-func (m mergeError) Unwrap() []error {
-	if len(m.errs) == 0 {
-		return nil
-	}
-	return m.errs
-}
-
-func MergeError(msg string, errs ...error) mergeError {
-	return mergeError{msg, errs}
+func MergeError(msg string, errs ...error) error {
+	errs = slices.Insert(errs, 0, error(ErrorString(msg)))
+	return errors.Join(errs...)
 }
 
 func Errors(msg string, errs ...error) error {
 	if len(errs) == 0 {
 		return nil
 	}
-	return mergeError{msg, errs}
+	return MergeError(msg, errs...)
 }
 
 type ErrorString string

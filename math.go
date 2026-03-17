@@ -188,3 +188,10 @@ func BoolToNumber[T Number](b bool) T {
 	}
 	return 0
 }
+
+func Sum[T Number](vs ...T) (o T) {
+	for _, v := range vs {
+		o += v
+	}
+	return o
+}

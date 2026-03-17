@@ -208,6 +208,20 @@ func (nt *Nullable[T]) Scan(value any) error {
 	return nil
 }
 
+func (nt Nullable[T]) ToPointer() *T {
+	if nt.Valid {
+		return &nt.V
+	}
+	return nil
+}
+
+func NullableFromPointer[T any](v *T) Nullable[T] {
+	if v == nil {
+		return Nullable[T]{}
+	}
+	return NewNullable(*v)
+}
+
 func NewNullable[T any](v T) Nullable[T] {
 	return Nullable[T]{V: v, Valid: true}
 }
