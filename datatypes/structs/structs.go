@@ -1,7 +1,7 @@
 package cstructs
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"io"
 
 	"github.com/deorth-kku/go-common/args"
@@ -10,14 +10,12 @@ import (
 func ToMap(stc any) (m map[string]any, err error) {
 	rd, wt := io.Pipe()
 	defer rd.Close()
-	enc := json.NewEncoder(wt)
-	dec := json.NewDecoder(rd)
 	var encerr error
 	go func() {
-		encerr = enc.Encode(stc)
+		encerr = json.MarshalWrite(wt, stc)
 		wt.Close()
 	}()
-	err = dec.Decode(&m)
+	err = json.UnmarshalRead(rd, &m)
 	if encerr != nil {
 		return nil, encerr
 	}

@@ -34,7 +34,3 @@ func IsZeroT[T CanEqual[T]](a T) bool {
 type CanCompare[T any] interface {
 	Compare(T) int
 }
-
-func CompareT[T CanCompare[T]](a, b T) int {
-	return a.Compare(b)
-}

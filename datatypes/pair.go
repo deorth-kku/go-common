@@ -35,9 +35,7 @@ func PairSliceFromMap[K comparable, V any, M ~map[K]V](m M) (pairs PairSlice[K, 
 type PairSlice[K any, V any] []Pair[K, V]
 
 func (ps PairSlice[K, V]) Keys(yield citer.Yield[K]) {
-	slices.Values(ps)(func(line Pair[K, V]) bool {
-		return yield(line.Key)
-	})
+	citer.Seq2K(ps.Range)(yield)
 }
 
 func (ps PairSlice[K, V]) SliceKeys() []K {
@@ -45,9 +43,7 @@ func (ps PairSlice[K, V]) SliceKeys() []K {
 }
 
 func (ps PairSlice[K, V]) Values(yield citer.Yield[V]) {
-	slices.Values(ps)(func(line Pair[K, V]) bool {
-		return yield(line.Value)
-	})
+	citer.Seq2V(ps.Range)(yield)
 }
 
 func (ps PairSlice[K, V]) SliceValues() []V {
@@ -98,7 +94,7 @@ func Sort[K cmp.Ordered, V any](ps PairSlice[K, V]) {
 
 func SortT[K ccmp.CanCompare[K], V any](ps PairSlice[K, V]) {
 	slices.SortFunc(ps, func(a, b Pair[K, V]) int {
-		return ccmp.CompareT(a.Key, b.Key)
+		return a.Key.Compare(b.Key)
 	})
 }
 
@@ -124,7 +120,7 @@ func Insert[K cmp.Ordered, V any](ps PairSlice[K, V], key K, value V) PairSlice[
 }
 
 func InsertT[K ccmp.CanCompare[K], V any](ps PairSlice[K, V], key K, value V) PairSlice[K, V] {
-	return ps.insert(key, value, ccmp.CompareT)
+	return ps.insert(key, value, K.Compare)
 }
 
 func (ps PairSlice[K, V]) compute(key K, valueFn computeFunc[V], cmp cmpFunc[K]) (PairSlice[K, V], V, bool) {
@@ -153,7 +149,7 @@ func Compute[K cmp.Ordered, V any](ps PairSlice[K, V], key K, valueFn computeFun
 }
 
 func ComputeT[K ccmp.CanCompare[K], V any](ps PairSlice[K, V], key K, valueFn computeFunc[V]) (PairSlice[K, V], V, bool) {
-	return ps.compute(key, valueFn, ccmp.CompareT)
+	return ps.compute(key, valueFn, K.Compare)
 }
 
 func (ps PairSlice[K, V]) binarySearch(key K, cmp cmpFunc[K]) (V, bool) {
@@ -172,7 +168,7 @@ func BinarySearch[K cmp.Ordered, V any](ps PairSlice[K, V], key K) (V, bool) {
 }
 
 func BinarySearchT[K ccmp.CanCompare[K], V any](ps PairSlice[K, V], key K) (V, bool) {
-	return ps.binarySearch(key, ccmp.CompareT)
+	return ps.binarySearch(key, K.Compare)
 }
 
 func (ps PairSlice[K, V]) delete(key K, cmp cmpFunc[K]) PairSlice[K, V] {
@@ -190,7 +186,7 @@ func Delete[K cmp.Ordered, V any](ps PairSlice[K, V], key K) PairSlice[K, V] {
 }
 
 func DeleteT[K ccmp.CanCompare[K], V any](ps PairSlice[K, V], key K) PairSlice[K, V] {
-	return ps.delete(key, ccmp.CompareT)
+	return ps.delete(key, K.Compare)
 }
 
 type psdata[K any, V any] = PairSlice[K, V]
@@ -252,19 +248,19 @@ type BSMapT[K ccmp.CanCompare[K], V any] struct {
 }
 
 func (bs BSMapT[K, V]) Load(key K) (V, bool) {
-	return bs.binarySearch(key, ccmp.CompareT)
+	return bs.binarySearch(key, K.Compare)
 }
 
 func (bs *BSMapT[K, V]) Store(key K, value V) {
-	bs.psdata = bs.insert(key, value, ccmp.CompareT)
+	bs.psdata = bs.insert(key, value, K.Compare)
 }
 
 func (bs *BSMapT[K, V]) Delete(key K) {
-	bs.psdata = bs.delete(key, ccmp.CompareT)
+	bs.psdata = bs.delete(key, K.Compare)
 }
 
 func (bs *BSMapT[K, V]) Compute(key K, valueFn computeFunc[V]) (actual V, ok bool) {
-	bs.psdata, actual, ok = bs.compute(key, valueFn, ccmp.CompareT)
+	bs.psdata, actual, ok = bs.compute(key, valueFn, K.Compare)
 	return
 }
 

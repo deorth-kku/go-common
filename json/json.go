@@ -3,7 +3,7 @@ package cjson
 import (
 	"database/sql/driver"
 	"encoding"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"math"
 
