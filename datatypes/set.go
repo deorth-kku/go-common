@@ -79,6 +79,10 @@ func (s *Set[T]) UnmarshalJSON(data []byte) error {
 	return ijson.UnmarshalV1(data, s)
 }
 
+func (s Set[T]) IsZero() bool {
+	return s.data == nil
+}
+
 func (s *Set[T]) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	tok, err := dec.ReadToken()
 	if err != nil {
@@ -87,6 +91,7 @@ func (s *Set[T]) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	switch tok.Kind() {
 	case '[':
 	case 'n':
+		s.data = nil
 		return nil
 	default:
 		return &json.SemanticError{
