@@ -2,11 +2,13 @@ package datatypes
 
 import (
 	"cmp"
+	"encoding/json/jsontext"
 	"maps"
 	"slices"
 
 	ccmp "github.com/deorth-kku/go-common/cmp"
 	cslices "github.com/deorth-kku/go-common/datatypes/slices"
+	ijson "github.com/deorth-kku/go-common/internal/json"
 	citer "github.com/deorth-kku/go-common/iter"
 )
 
@@ -60,6 +62,22 @@ func (ps PairSlice[K, V]) Backward(yield citer.Yield2[K, V]) {
 	slices.Backward(ps)(func(_ int, line Pair[K, V]) bool {
 		return yield(line.Key, line.Value)
 	})
+}
+
+func (ps PairSlice[K, V]) MarshalJSONTo(enc *jsontext.Encoder) error {
+	return ijson.MarshalPairSlice(enc, ps)
+}
+
+func (ps *PairSlice[K, V]) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+	return ijson.UnmarshalPairSlice(dec, ps)
+}
+
+func (ps *PairSlice[K, V]) UnmarshalJSON(data []byte) error {
+	return ijson.UnmarshalV1(data, ps)
+}
+
+func (ps PairSlice[K, V]) MarshalJSON() ([]byte, error) {
+	return ijson.MarshalV1(ps)
 }
 
 func (ps PairSlice[K, V]) search(key K, equal func(a, b K) bool) (V, bool) {

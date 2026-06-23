@@ -1,6 +1,8 @@
 package cjson
 
 import (
+	"bytes"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"net"
@@ -41,4 +43,18 @@ func TestSqlString(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(n.Raw)
+}
+
+func TestOmitTopLevelNewline(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+	enc := jsontext.NewEncoder(buf, WithOmitTopLevelNewline(true))
+	err := enc.WriteValue(jsontext.Value("{}"))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if buf.Bytes()[buf.Len()-1] == 'n' {
+		t.Error("the tailing new line was added")
+	}
+	fmt.Print(buf.String())
 }
