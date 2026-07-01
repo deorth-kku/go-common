@@ -2,12 +2,14 @@ package cjson
 
 import (
 	"bytes"
+	v1 "encoding/json"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"net"
 	"testing"
 
+	citer "github.com/deorth-kku/go-common/iter"
 	cmath "github.com/deorth-kku/go-common/math"
 )
 
@@ -57,4 +59,50 @@ func TestOmitTopLevelNewline(t *testing.T) {
 		t.Error("the tailing new line was added")
 	}
 	fmt.Print(buf.String())
+}
+
+func BenchmarkToUintptr(b *testing.B) {
+	for b.Loop() {
+		toUintptr(func() {})
+	}
+}
+
+func TestToSlice(t *testing.T) {
+	data := `["test"]`
+	var it SeqJson[string]
+	err := json.Unmarshal([]byte(data), &it)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	ptr := get(it)
+	if ptr == nil {
+		t.Error("failed to recover")
+		return
+	}
+	fmt.Println(len(*ptr))
+}
+
+func TestToPairSlice(t *testing.T) {
+	data := `{"key":"value"}`
+	var it Seq2Json[string, string]
+	err := json.Unmarshal([]byte(data), &it)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	ptr := get2(it)
+	if ptr == nil {
+		t.Error("failed to recover")
+		return
+	}
+	fmt.Println(len(*ptr))
+}
+
+func TestV1Behavior(t *testing.T) {
+	data, err := v1.Marshal(ToSeq2(citer.EmptyRange2[string, struct{}]))
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(string(data))
 }

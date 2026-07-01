@@ -12,10 +12,7 @@ import (
 	citer "github.com/deorth-kku/go-common/iter"
 )
 
-type Pair[K any, V any] struct {
-	Key   K
-	Value V
-}
+type Pair[K any, V any] ijson.Pair[K, V]
 
 func NewPair[K any, V any](Key K, Value V) Pair[K, V] {
 	return Pair[K, V]{Key: Key, Value: Value}

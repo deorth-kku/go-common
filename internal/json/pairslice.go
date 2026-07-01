@@ -7,12 +7,12 @@ import (
 	"slices"
 )
 
-type pair[K, V any] = struct {
+type Pair[K, V any] = struct {
 	Key   K
 	Value V
 }
 
-func UnmarshalPairSlice[S ~[]P, P ~pair[K, V], K, V any](dec *jsontext.Decoder, ps *S) error {
+func UnmarshalPairSlice[S ~[]P, P ~Pair[K, V], K, V any](dec *jsontext.Decoder, ps *S) error {
 	tok, err := dec.ReadToken()
 	if err != nil {
 		return err
@@ -31,9 +31,9 @@ func UnmarshalPairSlice[S ~[]P, P ~pair[K, V], K, V any](dec *jsontext.Decoder, 
 		}
 	}
 	result := make([]P, 0)
-	var line pair[K, V]
+	var line Pair[K, V]
 	for dec.PeekKind() != '}' {
-		line = pair[K, V]{}
+		line = Pair[K, V]{}
 		err = json.UnmarshalDecode(dec, &line.Key)
 		if err != nil {
 			return err
@@ -53,7 +53,7 @@ func UnmarshalPairSlice[S ~[]P, P ~pair[K, V], K, V any](dec *jsontext.Decoder, 
 	return nil
 }
 
-func MarshalPairSlice[S ~[]P, P ~pair[K, V], K, V any](enc *jsontext.Encoder, ps S) error {
+func MarshalPairSlice[S ~[]P, P ~Pair[K, V], K, V any](enc *jsontext.Encoder, ps S) error {
 	if ps == nil {
 		return enc.WriteToken(jsontext.Null)
 	}
@@ -62,7 +62,7 @@ func MarshalPairSlice[S ~[]P, P ~pair[K, V], K, V any](enc *jsontext.Encoder, ps
 		return err
 	}
 	for _, p0 := range ps {
-		p := pair[K, V](p0)
+		p := Pair[K, V](p0)
 		err = json.MarshalEncode(enc, p.Key)
 		if err != nil {
 			return err

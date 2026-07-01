@@ -76,6 +76,16 @@ func (sj *Seq2Json[K, V]) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	return nil
 }
 
+type Pair[K, V any] = ijson.Pair[K, V]
+
+func UnmarshalPairSlice[S ~[]P, P ~Pair[K, V], K, V any](dec *jsontext.Decoder, ps *S) error {
+	return ijson.UnmarshalPairSlice(dec, ps)
+}
+
+func MarshalPairSlice[S ~[]P, P ~Pair[K, V], K, V any](enc *jsontext.Encoder, ps S) error {
+	return ijson.MarshalPairSlice(enc, ps)
+}
+
 func (sj Seq2Json[K, V]) MarshalJSON() ([]byte, error) {
 	return ijson.MarshalV1(sj)
 }
