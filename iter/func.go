@@ -1,5 +1,9 @@
 package citer
 
+import (
+	cmath "github.com/deorth-kku/go-common/math"
+)
+
 func EmptyRange[T any](Yield[T])             {}
 func EmptyRange2[K any, V any](Yield2[K, V]) {}
 
@@ -74,6 +78,17 @@ func Filter2[K any, V any](seq Seq2[K, V], filter Yield2[K, V]) Seq2[K, V] {
 				return yield(k, v)
 			}
 			return true
+		})
+	}
+}
+
+func Count[I cmath.AnyInt, T any](seq Seq[T]) Seq2[I, T] {
+	return func(y Yield2[I, T]) {
+		var i I
+		seq(func(v T) bool {
+			b := y(i, v)
+			i++
+			return b
 		})
 	}
 }

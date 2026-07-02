@@ -1,6 +1,7 @@
 package citer
 
 import (
+	"fmt"
 	"maps"
 	"slices"
 	"testing"
@@ -11,5 +12,10 @@ func TestSeq2(t *testing.T) {
 		"1": 2,
 		"3": 4,
 	})))
-	println(keys)
+	fmt.Println(keys)
+}
+
+func TestIndex(t *testing.T) {
+	keys := maps.Collect(Count[int](slices.Values([]string{"0", "1", "2", "3", "4"})))
+	fmt.Println(keys)
 }
