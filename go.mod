@@ -1,3 +1,3 @@
 module github.com/deorth-kku/go-common
 
-go 1.25
+go 1.27
