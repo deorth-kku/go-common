@@ -43,7 +43,7 @@ func shouldclose(rt io.Writer) (io.Closer, bool) {
 	return closer, ok
 }
 
-func reload[T slog.Handler](ah *AtomicHandler, file io.Writer, lv slog.Leveler, format clog.LogFormatFunc[T], opts ...clog.SlogOption) {
+func (ah *AtomicHandler) Reload[T slog.Handler](file io.Writer, lv slog.Leveler, format clog.LogFormatFunc[T], opts ...clog.SlogOption) {
 	if closer, ok := shouldclose(ah.f); ok {
 		if ah.clones.Load() > 0 {
 			ah.clones.Add(-1)

@@ -46,7 +46,7 @@ func Reload[T slog.Handler](logger *slog.Logger, file io.Writer, lv slog.Leveler
 	if err != nil {
 		return err
 	}
-	reload(ah, file, lv, format, opts...)
+	ah.Reload(file, lv, format, opts...)
 	return nil
 }
 
