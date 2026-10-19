@@ -3,6 +3,7 @@ package cjson
 import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"io"
 	"iter"
 	"reflect"
 	"runtime"
@@ -11,6 +12,7 @@ import (
 	"weak"
 
 	"github.com/deorth-kku/go-common/datatypes"
+	cerrors "github.com/deorth-kku/go-common/errors"
 	ijson "github.com/deorth-kku/go-common/internal/json"
 	citer "github.com/deorth-kku/go-common/iter"
 )
@@ -199,4 +201,103 @@ func ToSlice[T any](it SeqJson[T]) []T {
 		return *p
 	}
 	return slices.Collect(iter.Seq[T](it))
+}
+
+type ErrFunc func() error
+
+type Consumer[T any] citer.Yield[T]
+
+func (c Consumer[T]) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+	tok, err := dec.ReadToken()
+	if err != nil {
+		return err
+	}
+	switch tok.Kind() {
+	case '[':
+	case 'n':
+		return nil
+	default:
+		return cerrors.String("not a json array")
+	}
+
+	var line T
+	for dec.PeekKind() != ']' {
+		line = *new(T)
+		err = json.UnmarshalDecode(dec, &line)
+		if err != nil {
+			return err
+		}
+		if !c(line) {
+			return ErrConsumerStopped
+		}
+	}
+	_, err = dec.ReadToken()
+	return err
+}
+
+func ReaderSeq[T any](rd io.Reader, opts ...json.Options) (SeqJson[T], ErrFunc) {
+	var err error
+	dec := jsontext.NewDecoder(rd, opts...)
+	return func(yield func(T) bool) {
+			co := Consumer[T](yield)
+			err = json.UnmarshalDecode(dec, &co)
+		}, func() error {
+			return err
+		}
+}
+
+type Consumer2[K, V any] citer.Yield2[K, V]
+
+const ErrConsumerStopped = cerrors.String("the consumer stopped consuming")
+
+type pair[K, V any] = struct {
+	Key   K
+	Value V
+}
+
+const ErrNotObject = cerrors.String("not a json object")
+
+func (c Consumer2[K, V]) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+	tok, err := dec.ReadToken()
+	if err != nil {
+		return err
+	}
+	switch tok.Kind() {
+	case '{':
+	case 'n':
+		return nil
+	default:
+		return ErrNotObject
+	}
+	var line pair[K, V]
+	for dec.PeekKind() != '}' {
+		line = pair[K, V]{}
+		err = json.UnmarshalDecode(dec, &line.Key)
+		if err != nil {
+			return err
+		}
+		err = json.UnmarshalDecode(dec, &line.Value)
+		if err != nil {
+			return err
+		}
+		if !c(line.Key, line.Value) {
+			return ErrConsumerStopped
+		}
+	}
+	_, err = dec.ReadToken()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ReaderSeq2[K, V any](rd io.Reader, opts ...json.Options) (Seq2Json[K, V], ErrFunc) {
+	var err error
+	dec := jsontext.NewDecoder(rd, opts...)
+	return func(yield func(K, V) bool) {
+			co := Consumer2[K, V](yield)
+			err = json.UnmarshalDecode(dec, &co)
+		}, func() error {
+			return err
+		}
 }

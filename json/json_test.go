@@ -7,6 +7,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"net"
+	"strings"
 	"testing"
 
 	citer "github.com/deorth-kku/go-common/iter"
@@ -105,4 +106,56 @@ func TestV1Behavior(t *testing.T) {
 		t.Error(err)
 	}
 	fmt.Println(string(data))
+}
+
+func TestReadSeq(t *testing.T) {
+	data := strings.NewReader("[1,2,3]")
+	it, errf := ReaderSeq[int](data)
+	for line := range it {
+		fmt.Println(line)
+	}
+	if errf() != nil {
+		t.Error(errf())
+		return
+	}
+}
+
+func TestReadSeq2(t *testing.T) {
+	data := strings.NewReader(`{"test":1,"hello":2}`)
+	it, errf := ReaderSeq2[string, int](data)
+	for k, v := range it {
+		fmt.Println(k, v)
+	}
+	if errf() != nil {
+		t.Error(errf())
+		return
+	}
+}
+
+func TestReadSeq2Err(t *testing.T) {
+	data := strings.NewReader(`{"test":1,"hello":2}`)
+	it, errf := ReaderSeq2[string, int](data)
+	for k, v := range it {
+		fmt.Println(k, v)
+		break
+	}
+	if errf() == nil {
+		t.Error("no error found")
+		return
+	}
+	fmt.Println(errf())
+}
+
+func TestConsumer2(t *testing.T) {
+	data := strings.NewReader(`{"test":1,"hello":2}`)
+	var co Consumer2[string, int]
+	co = func(s string, i int) bool {
+		fmt.Println(s, i)
+		return true
+	}
+	err := json.UnmarshalRead(data, &co)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 }
